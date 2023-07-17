@@ -1,5 +1,4 @@
 #include <cctype>
-#include <climits>
 #include <cmath>
 #include <concepts>
 #include <cstdio>
@@ -67,10 +66,9 @@ class istream : public noncopyable {
 
   public:
     char get() {
-        if (!pre) {
-            now = vget();
-            if (now == EOF) eof = true;
-        } else pre = false;
+        if (!pre)
+            if ((now = vget()) == EOF) eof = true;
+        pre = false;
         return now;
     }
     explicit operator bool() { return !fail; }
@@ -275,8 +273,10 @@ class ostream : public noncopyable {
         return *this;
     }
     ostream& operator<<(bool f) {
-        if (boolalpha) return *this << (f ? (kase ? "TRUE" : "true") : (kase ? "FALSE" : "false"));
-        else return *this << (f ? "1" : "0");
+        if (boolalpha) {
+            if (kase) return *this << (f ? "TRUE" : "FALSE");
+            else return *this << (f ? "true" : "false");
+        } else return *this << (f ? "1" : "0");
     }
     ostream& operator<<(const void* p) {
         int n = base, flag = showbase;
@@ -340,7 +340,7 @@ class istream : public interface::istream {
     char buf[SIZE], *p = buf, *q = buf;
     char vget() override {
         if (p == q) {
-            int len = fread(buf, 1, SIZE, file);
+            int len = fread(buf, 1, SIZE, stream);
             if (!len) return EOF;
             p = buf, q = buf + len;
         }
@@ -348,15 +348,15 @@ class istream : public interface::istream {
     }
 
   protected:
-    FILE* file = stdin;
+    FILE* stream = stdin;
 
   public:
-    virtual ~istream() { fclose(file); }
+    virtual ~istream() { fclose(stream); }
 };
 class ifstream : public istream {
   public:
-    ifstream(FILE* p) { istream::file = p; }
-    ifstream(const char* s) { istream::file = fopen(s, "r"); }
+    ifstream(FILE* p) { istream::stream = p; }
+    ifstream(const char* s) { istream::stream = fopen(s, "r"); }
 };
 class ostream : public interface::ostream {
   private:
@@ -388,23 +388,24 @@ class ostream : public interface::ostream {
         p = buf + used + n - len;
     }
     void vflush() override {
-        fwrite(buf, 1, p - buf, file);
+        fwrite(buf, 1, p - buf, stream);
         p = buf;
+        fflush(stream);
     }
 
   protected:
-    FILE* file = stdout;
+    FILE* stream = stdout;
 
   public:
     virtual ~ostream() {
         vflush();
-        fclose(file);
+        fclose(stream);
     }
 };
 class ofstream : public ostream {
   public:
-    ofstream(FILE* p) { ostream::file = p; }
-    ofstream(const char* s) { ostream::file = fopen(s, "w"); }
+    ofstream(FILE* p) { ostream::stream = p; }
+    ofstream(const char* s) { ostream::stream = fopen(s, "w"); }
 };
 istream is;
 ostream os;
