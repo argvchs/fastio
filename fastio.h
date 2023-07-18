@@ -41,13 +41,13 @@ struct setprecision {
 struct setw {
     int width;
 };
-}  // namespace symbols
+} // namespace symbols
 namespace interface {
 class noncopyable {
   public:
     noncopyable() = default;
-    noncopyable(const noncopyable&) = delete;
-    noncopyable& operator=(const noncopyable&) = delete;
+    noncopyable(const noncopyable &) = delete;
+    noncopyable &operator=(const noncopyable &) = delete;
     virtual ~noncopyable() = default;
 };
 class istream : public noncopyable {
@@ -72,7 +72,7 @@ class istream : public noncopyable {
         return now;
     }
     explicit operator bool() { return !fail; }
-    template <std::integral T> istream& operator>>(T& n) {
+    template <std::integral T> istream &operator>>(T &n) {
         bool flag = false;
         char c;
         while (!isdigit(c = get()) && !eof)
@@ -87,7 +87,7 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
-    template <std::floating_point T> istream& operator>>(T& n) {
+    template <std::floating_point T> istream &operator>>(T &n) {
         bool flag = false;
         char c;
         while (!isdigit(c = get()) && !eof)
@@ -106,7 +106,7 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
-    istream& operator>>(char& c) {
+    istream &operator>>(char &c) {
         while (isspace(c = get()) && !eof)
             ;
         if (eof) {
@@ -115,12 +115,12 @@ class istream : public noncopyable {
         }
         return *this;
     }
-    istream& operator>>(bool& f) {
+    istream &operator>>(bool &f) {
         long long n;
         *this >> n, f = n;
         return *this;
     }
-    template <int N> istream& operator>>(char (&s)[N]) {
+    template <int N> istream &operator>>(char (&s)[N]) {
         int len = 0;
         char c;
         while (isspace(c = get()) && !eof)
@@ -135,7 +135,7 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
-    istream& operator>>(symbols::symbol a) {
+    istream &operator>>(symbols::symbol a) {
         if (a == symbols::bin) base = 2;
         else if (a == symbols::oct) base = 8;
         else if (a == symbols::dec) base = 10;
@@ -146,11 +146,11 @@ class istream : public noncopyable {
         } else if (a == symbols::reset) base = 10;
         return *this;
     }
-    istream& operator>>(symbols::setbase a) {
+    istream &operator>>(symbols::setbase a) {
         base = std::max(std::min(a.base, 36), 2);
         return *this;
     }
-    istream& ignore(char end = '\n') {
+    istream &ignore(char end = '\n') {
         char c;
         while ((c = get()) != end && !eof)
             ;
@@ -160,7 +160,7 @@ class istream : public noncopyable {
         }
         return *this;
     }
-    template <int N> istream& getline(char (&s)[N], char end = '\n') {
+    template <int N> istream &getline(char (&s)[N], char end = '\n') {
         int len = 0;
         char c;
         if (eof) {
@@ -197,20 +197,20 @@ class ostream : public noncopyable {
         return res;
     }
     virtual void vput(char) = 0;
-    virtual void vputs(const char*, int) = 0;
+    virtual void vputs(const char *, int) = 0;
     virtual void vfill(char, int) = 0;
     virtual void vflush() = 0;
 
   public:
-    ostream& put(char c) {
+    ostream &put(char c) {
         vput(c);
         return *this;
     }
-    ostream& flush() {
+    ostream &flush() {
         vflush();
         return *this;
     }
-    template <std::integral T> ostream& operator<<(T n) {
+    template <std::integral T> ostream &operator<<(T n) {
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
         bool flag = n < 0;
@@ -230,7 +230,7 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <std::floating_point T> ostream& operator<<(T n) {
+    template <std::floating_point T> ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
         bool flag = n < 0;
@@ -259,34 +259,34 @@ class ostream : public noncopyable {
         if (!adjust) fill((q1 - p1) + (q2 - p2));
         return *this;
     }
-    ostream& operator<<(char c) {
+    ostream &operator<<(char c) {
         if (adjust) fill(1);
         vput(c);
         if (!adjust) fill(1);
         return *this;
     }
-    ostream& operator<<(const char* s) {
+    ostream &operator<<(const char *s) {
         int n = strlen(s);
         if (adjust) fill(n);
         vputs(s, n);
         if (!adjust) fill(n);
         return *this;
     }
-    ostream& operator<<(bool f) {
+    ostream &operator<<(bool f) {
         if (boolalpha) {
             if (kase) return *this << (f ? "TRUE" : "FALSE");
             else return *this << (f ? "true" : "false");
         } else return *this << (f ? "1" : "0");
     }
-    ostream& operator<<(const void* p) {
+    ostream &operator<<(const void *p) {
         int n = base, flag = showbase;
         base = 16, showbase = true;
         *this << (long long)p;
         base = n, showbase = flag;
         return *this;
     }
-    ostream& operator<<(std::nullptr_t p) { return *this << (kase ? "NULLPTR" : "nullptr"); }
-    ostream& operator<<(symbols::symbol a) {
+    ostream &operator<<(std::nullptr_t p) { return *this << (kase ? "NULLPTR" : "nullptr"); }
+    ostream &operator<<(symbols::symbol a) {
         if (a == symbols::endl) vput('\n');
         else if (a == symbols::ends) vput(' ');
         else if (a == symbols::flush) vflush();
@@ -314,26 +314,26 @@ class ostream : public noncopyable {
         }
         return *this;
     }
-    ostream& operator<<(symbols::setbase a) {
+    ostream &operator<<(symbols::setbase a) {
         base = std::max(std::min(a.base, 36), 2);
         eps = quickpow(base, precision);
         return *this;
     }
-    ostream& operator<<(symbols::setfill a) {
+    ostream &operator<<(symbols::setfill a) {
         setfill = a.setfill;
         return *this;
     }
-    ostream& operator<<(symbols::setprecision a) {
+    ostream &operator<<(symbols::setprecision a) {
         precision = std::max(a.precision, 0);
         eps = quickpow(base, precision);
         return *this;
     }
-    ostream& operator<<(symbols::setw a) {
+    ostream &operator<<(symbols::setw a) {
         width = std::max(a.width, 0);
         return *this;
     }
 };
-}  // namespace interface
+} // namespace interface
 const int SIZE = 0xfffff;
 class istream : public interface::istream {
   private:
@@ -348,15 +348,15 @@ class istream : public interface::istream {
     }
 
   protected:
-    FILE* stream = stdin;
+    FILE *stream = stdin;
 
   public:
     virtual ~istream() { fclose(stream); }
 };
 class ifstream : public istream {
   public:
-    ifstream(FILE* p) { istream::stream = p; }
-    ifstream(const char* s) { istream::stream = fopen(s, "r"); }
+    ifstream(FILE *p) { istream::stream = p; }
+    ifstream(const char *s) { istream::stream = fopen(s, "r"); }
 };
 class ostream : public interface::ostream {
   private:
@@ -365,7 +365,7 @@ class ostream : public interface::ostream {
         if (p - buf >= SIZE) vflush();
         *p++ = c;
     }
-    void vputs(const char* s, int n) override {
+    void vputs(const char *s, int n) override {
         int used = p - buf, len = 0;
         while (n - len + used >= SIZE) {
             memcpy(buf + used, s + len, SIZE - used);
@@ -394,7 +394,7 @@ class ostream : public interface::ostream {
     }
 
   protected:
-    FILE* stream = stdout;
+    FILE *stream = stdout;
 
   public:
     virtual ~ostream() {
@@ -404,9 +404,9 @@ class ostream : public interface::ostream {
 };
 class ofstream : public ostream {
   public:
-    ofstream(FILE* p) { ostream::stream = p; }
-    ofstream(const char* s) { ostream::stream = fopen(s, "w"); }
+    ofstream(FILE *p) { ostream::stream = p; }
+    ofstream(const char *s) { ostream::stream = fopen(s, "w"); }
 };
 istream is;
 ostream os;
-};  // namespace fastio
+}; // namespace fastio
