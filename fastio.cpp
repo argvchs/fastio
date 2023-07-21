@@ -1,5 +1,4 @@
 #include "fastio.h"
-#include <ctime>
 #include <numbers>
 using namespace fastio;
 using namespace symbols;
@@ -28,6 +27,5 @@ int main() {
     ofs << left << setw(20) << std::numbers::pi << endl;
     ofs << right << setw(20) << std::numbers::pi << endl;
     // while (ifs >> n) ofs << n << endl;
-    // os << (double)clock() / CLOCKS_PER_SEC;
     return 0;
 }

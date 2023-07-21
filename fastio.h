@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <bit>
 #include <cctype>
 #include <cmath>
 #include <concepts>
@@ -73,25 +75,25 @@ class istream : public noncopyable {
     }
     explicit operator bool() { return !fail; }
     template <std::integral T> istream &operator>>(T &n) {
-        bool flag = false;
+        bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
-            if (isgraph(c) && std::is_signed_v<T>) flag = c == '-';
+            if (isgraph(c) && std::is_signed_v<T>) f = c == '-';
         if (eof) {
             fail = true;
             return *this;
         }
         pre = true, n = 0;
         while (isdigit(c = get())) n = n * base + todigit(c);
-        if (flag) n = -n;
+        if (f) n = -n;
         pre = true;
         return *this;
     }
     template <std::floating_point T> istream &operator>>(T &n) {
-        bool flag = false;
+        bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
-            if (isgraph(c)) flag = c == '-';
+            if (isgraph(c)) f = c == '-';
         if (eof) {
             fail = true;
             return *this;
@@ -102,7 +104,7 @@ class istream : public noncopyable {
             T pow = 1;
             while (isdigit(c = get())) n += todigit(c) / (pow *= base);
         }
-        if (flag) n = -n;
+        if (f) n = -n;
         pre = true;
         return *this;
     }
@@ -117,7 +119,8 @@ class istream : public noncopyable {
     }
     istream &operator>>(bool &f) {
         long long n;
-        *this >> n, f = n;
+        *this >> n;
+        f = n != 0;
         return *this;
     }
     template <int N> istream &operator>>(char (&s)[N]) {
@@ -142,7 +145,8 @@ class istream : public noncopyable {
         else if (a == symbols::hex) base = 16;
         else if (a == symbols::skipws) {
             char c;
-            *this >> c, pre = 1;
+            *this >> c;
+            pre = 1;
         } else if (a == symbols::reset) base = 10;
         return *this;
     }
@@ -213,8 +217,8 @@ class ostream : public noncopyable {
     template <std::integral T> ostream &operator<<(T n) {
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
-        bool flag = n < 0;
-        if (flag) n = -n;
+        bool f = n < 0;
+        if (f) n = -n;
         std::make_unsigned_t<T> m = n;
         if (!m) *p-- = '0';
         while (m) *p-- = toalpha(m % base), m /= base;
@@ -223,7 +227,7 @@ class ostream : public noncopyable {
             else if (base == 16) *p-- = kase ? 'X' : 'x', *p-- = '0';
             else if (base == 8) *p-- = '0';
         }
-        if (flag) *p-- = '-';
+        if (f) *p-- = '-';
         else if (showpos) *p-- = '+';
         if (adjust) fill(q - p);
         vputs(p + 1, q - p);
@@ -233,8 +237,8 @@ class ostream : public noncopyable {
     template <std::floating_point T> ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
-        bool flag = n < 0;
-        if (flag) n = -n;
+        bool f = n < 0;
+        if (f) n = -n;
         long long m1 = std::floor(n), m2 = std::round((n - m1) * eps);
         int len = precision;
         if (m2 >= eps) ++m1, m2 = 0;
@@ -246,7 +250,7 @@ class ostream : public noncopyable {
             else if (base == 16) *p1-- = kase ? 'X' : 'x', *p1-- = '0';
             else if (base == 8) *p1-- = '0';
         }
-        if (flag) *p1-- = '-';
+        if (f) *p1-- = '-';
         else if (showpos) *p1-- = '+';
         if (showpoint) *p2-- = '.';
         else {
@@ -279,10 +283,11 @@ class ostream : public noncopyable {
         } else return *this << (f ? "1" : "0");
     }
     ostream &operator<<(const void *p) {
-        int n = base, flag = showbase;
+        int n = base;
+        bool f = showbase;
         base = 16, showbase = true;
-        *this << (long long)p;
-        base = n, showbase = flag;
+        *this << std::bit_cast<unsigned long long>(p);
+        base = n, showbase = f;
         return *this;
     }
     ostream &operator<<(std::nullptr_t p) { return *this << (kase ? "NULLPTR" : "nullptr"); }
@@ -334,13 +339,13 @@ class ostream : public noncopyable {
     }
 };
 } // namespace interface
-const int SIZE = 0xfffff;
+const int SIZ = 0xfffff;
 class istream : public interface::istream {
   private:
-    char buf[SIZE], *p = buf, *q = buf;
+    char buf[SIZ], *p = buf, *q = buf;
     char vget() override {
         if (p == q) {
-            int len = fread(buf, 1, SIZE, stream);
+            int len = fread(buf, 1, SIZ, stream);
             if (!len) return EOF;
             p = buf, q = buf + len;
         }
@@ -360,29 +365,29 @@ class ifstream : public istream {
 };
 class ostream : public interface::ostream {
   private:
-    char buf[SIZE], *p = buf;
+    char buf[SIZ], *p = buf;
     void vput(char c) override {
-        if (p - buf >= SIZE) vflush();
+        if (p - buf >= SIZ) vflush();
         *p++ = c;
     }
     void vputs(const char *s, int n) override {
         int used = p - buf, len = 0;
-        while (n - len + used >= SIZE) {
-            memcpy(buf + used, s + len, SIZE - used);
-            p = buf + SIZE;
+        while (n - len + used >= SIZ) {
+            memcpy(buf + used, s + len, SIZ - used);
+            p = buf + SIZ;
             vflush();
-            len += SIZE - used, used = 0;
+            len += SIZ - used, used = 0;
         }
         memcpy(buf + used, s + len, n - len);
         p = buf + used + n - len;
     }
     void vfill(char c, int n) override {
         int used = p - buf, len = 0;
-        while (n - len + used >= SIZE) {
-            memset(buf + used, c, SIZE - used);
-            p = buf + SIZE;
+        while (n - len + used >= SIZ) {
+            memset(buf + used, c, SIZ - used);
+            p = buf + SIZ;
             vflush();
-            len += SIZE - used, used = 0;
+            len += SIZ - used, used = 0;
         }
         memset(buf + used, c, n - len);
         p = buf + used + n - len;
