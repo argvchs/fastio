@@ -195,19 +195,19 @@ fastio.in           # 读写测试数据
 
 ```cpp
 template <typename T, typename U>
-auto &operator<<(fastio::interface::istream &is, vector<T, U> &v) {
+auto &operator<<(fastio::interface::istream &is, vector<T, U> &a) {
     int n, m;
     is >> n;
-    v.clear();
+    a.clear();
     while (n--) {
         is >> m;
-        v.push_back(m);
+        a.push_back(m);
     }
-    return os;
+    return is;
 }
 template <typename T, typename U>
-auto &operator<<(fastio::interface::ostream &os, const vector<T> &v) {
-    for (const T &i : v) os << i << ' ';
+auto &operator<<(fastio::interface::ostream &os, const vector<T> &a) {
+    for (const T &i : a) os << i << ' ';
     return os;
 }
 ```
