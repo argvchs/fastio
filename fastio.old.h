@@ -1,9 +1,11 @@
 #include <algorithm>
-#include <bit>
 #include <cctype>
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <string_view>
 #include <type_traits>
 namespace fastio {
 namespace symbols {
@@ -32,24 +34,46 @@ enum symbol {
 };
 struct setbase {
     int base;
+    setbase(int n) : base(n) {}
 };
 struct setfill {
-    char setfill;
+    char fill;
+    setfill(char c) : fill(c) {}
 };
 struct setprecision {
     int precision;
+    setprecision(int n) : precision(n) {}
 };
 struct setw {
     int width;
+    setw(int n) : width(n) {}
 };
 } // namespace symbols
 namespace interface {
-class noncopyable {
-  public:
+template <typename T>
+constexpr bool is_signed_v =
+    std::is_integral_v<T> && std::is_signed_v<T> || std::is_same_v<T, __int128>;
+template <typename T>
+constexpr bool is_unsigned_v =
+    std::is_integral_v<T> && std::is_unsigned_v<T> || std::is_same_v<T, unsigned __int128>;
+template <typename T> constexpr bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
+template <typename T>
+constexpr bool is_floating_point_v = std::is_floating_point_v<T> || std::is_same_v<T, __float128>;
+template <typename T> struct make_unsigned {
+    using type = std::make_unsigned_t<T>;
+};
+template <> struct make_unsigned<__int128> {
+    using type = unsigned __int128;
+};
+template <> struct make_unsigned<unsigned __int128> {
+    using type = unsigned __int128;
+};
+template <typename T> using make_unsigned_t = typename make_unsigned<T>::type;
+struct noncopyable {
     noncopyable() = default;
+    virtual ~noncopyable() = default;
     noncopyable(const noncopyable &) = delete;
     noncopyable &operator=(const noncopyable &) = delete;
-    virtual ~noncopyable() = default;
 };
 class istream : public noncopyable {
   private:
@@ -73,12 +97,12 @@ class istream : public noncopyable {
         return now;
     }
     explicit operator bool() { return !fail; }
-    template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-    istream &operator>>(T &n) {
+    bool operator!() { return fail; }
+    template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0> istream &operator>>(T &n) {
         bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
-            if (isgraph(c) && std::is_signed_v<T>) f = c == '-';
+            if (isgraph(c) && is_signed_v<T>) f = c == '-';
         if (eof) {
             fail = true;
             return *this;
@@ -89,7 +113,7 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
-    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
+    template <typename T, std::enable_if_t<is_floating_point_v<T>, int> = 0>
     istream &operator>>(T &n) {
         bool f = false;
         char c;
@@ -139,6 +163,19 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
+    istream &operator>>(std::string &s) {
+        char c;
+        while (isspace(c = get()) && !eof)
+            ;
+        if (eof) {
+            fail = true;
+            return *this;
+        }
+        pre = true;
+        while (isgraph(c = get())) s.push_back(c);
+        pre = true;
+        return *this;
+    }
     istream &operator>>(symbols::symbol a) {
         if (a == symbols::bin) base = 2;
         else if (a == symbols::oct) base = 8;
@@ -175,6 +212,16 @@ class istream : public noncopyable {
         memset(s, '\0', sizeof(s));
         while ((c = get()) != end && !eof && len < N) s[len++] = c;
         if (s[len - 1] == '\r' && end == '\n') s[--len] = '\0';
+        return *this;
+    }
+    istream &getline(std::string &s, char end = '\n') {
+        char c;
+        if (eof) {
+            fail = true;
+            return *this;
+        }
+        while ((c = get()) != end && !eof) s.push_back(c);
+        if (s.back() == '\r' && end == '\n') s.pop_back();
         return *this;
     }
 };
@@ -215,13 +262,12 @@ class ostream : public noncopyable {
         vflush();
         return *this;
     }
-    template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-    ostream &operator<<(T n) {
+    template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0> ostream &operator<<(T n) {
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
         bool f = n < 0;
         if (f) n = -n;
-        std::make_unsigned_t<T> m = n;
+        make_unsigned_t<T> m = n;
         if (!m) *p-- = '0';
         while (m) *p-- = toalpha(m % base), m /= base;
         if (showbase) {
@@ -236,7 +282,7 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
+    template <typename T, std::enable_if_t<is_floating_point_v<T>, int> = 0>
     ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
@@ -279,6 +325,20 @@ class ostream : public noncopyable {
         if (!adjust) fill(n);
         return *this;
     }
+    ostream &operator<<(const std::string &s) {
+        int n = s.size();
+        if (adjust) fill(n);
+        vputs(s.data(), n);
+        if (!adjust) fill(n);
+        return *this;
+    }
+    ostream &operator<<(std::string_view sv) {
+        int n = sv.size();
+        if (adjust) fill(n);
+        vputs(sv.data(), n);
+        if (!adjust) fill(n);
+        return *this;
+    }
     ostream &operator<<(bool f) {
         if (boolalpha) {
             if (kase) return *this << (f ? "TRUE" : "FALSE");
@@ -289,7 +349,7 @@ class ostream : public noncopyable {
         int n = base;
         bool f = showbase;
         base = 16, showbase = true;
-        *this << std::bit_cast<unsigned long long>(p);
+        *this << reinterpret_cast<unsigned long long>(p);
         base = n, showbase = f;
         return *this;
     }
@@ -328,7 +388,7 @@ class ostream : public noncopyable {
         return *this;
     }
     ostream &operator<<(symbols::setfill a) {
-        setfill = a.setfill;
+        setfill = a.fill;
         return *this;
     }
     ostream &operator<<(symbols::setprecision a) {

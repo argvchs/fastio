@@ -8,13 +8,13 @@ int main() {
     int n;
     unsigned m;
     bool f;
-    char c, s[105];
+    char c, s1[105];
+    std::string s2;
     double d;
-    os << std::string("114514");
-    ifs >> n >> m >> f >> c >> s >> d;
-    ofs << n << ends << m << ends << f << ends << c << ends << s << ends << d << endl;
-    ifs.ignore().getline(s);
-    ofs << s << endl;
+    ifs >> n >> m >> f >> c >> s1 >> d;
+    ofs << n << ends << m << ends << f << ends << c << ends << s1 << ends << d << endl;
+    ifs.ignore().getline(s2);
+    ofs << s2 << endl;
     ofs << showbase << showpos;
     ofs << bin << INT_MAX << endl;
     ofs << oct << INT_MAX << ends << INT_MIN << ends << UINT_MAX << endl;
@@ -25,8 +25,8 @@ int main() {
     ofs << uppercase << new int << ends << lowercase << new int << endl;
     ofs << nullptr << endl;
     ofs << setfill('0') << setprecision(15);
-    ofs << left << setw(20) << std::numbers::pi << endl;
-    ofs << right << setw(20) << std::numbers::pi << endl;
+    ofs << left << setw(20) << acos(-1) << endl;
+    ofs << right << setw(20) << acos(-1) << endl;
     // while (ifs >> n) ofs << n << endl;
     return 0;
 }

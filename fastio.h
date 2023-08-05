@@ -36,15 +36,19 @@ enum symbol {
 };
 struct setbase {
     int base;
+    setbase(int n) : base(n) {}
 };
 struct setfill {
-    char setfill;
+    char fill;
+    setfill(char c) : fill(c) {}
 };
 struct setprecision {
     int precision;
+    setprecision(int n) : precision(n) {}
 };
 struct setw {
     int width;
+    setw(int n) : width(n) {}
 };
 } // namespace symbols
 namespace interface {
@@ -56,8 +60,8 @@ template <typename T>
 concept integral = signed_integral<T> || unsigned_integral<T>;
 template <typename T>
 concept floating_point = std::floating_point<T> || std::same_as<T, __float128>;
-template <integral T> struct make_unsigned {
-    using type = std::make_unsigned<T>::type;
+template <typename T> struct make_unsigned {
+    using type = std::make_unsigned_t<T>;
 };
 template <> struct make_unsigned<__int128> {
     using type = unsigned __int128;
@@ -65,6 +69,7 @@ template <> struct make_unsigned<__int128> {
 template <> struct make_unsigned<unsigned __int128> {
     using type = unsigned __int128;
 };
+template <typename T> using make_unsigned_t = typename make_unsigned<T>::type;
 struct noncopyable {
     noncopyable() = default;
     virtual ~noncopyable() = default;
@@ -262,7 +267,7 @@ class ostream : public noncopyable {
         char *p = buf + 100, *q = buf + 100;
         bool f = n < 0;
         if (f) n = -n;
-        typename make_unsigned<T>::type m = n;
+        make_unsigned_t<T> m = n;
         if (!m) *p-- = '0';
         while (m) *p-- = toalpha(m % base), m /= base;
         if (showbase) {
@@ -382,7 +387,7 @@ class ostream : public noncopyable {
         return *this;
     }
     ostream &operator<<(symbols::setfill a) {
-        setfill = a.setfill;
+        setfill = a.fill;
         return *this;
     }
     ostream &operator<<(symbols::setprecision a) {
