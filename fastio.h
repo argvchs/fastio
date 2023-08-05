@@ -62,12 +62,11 @@ template <> struct make_unsigned<__int128> {
 template <> struct make_unsigned<unsigned __int128> {
     using type = unsigned __int128;
 };
-class noncopyable {
-  public:
+struct noncopyable {
     noncopyable() = default;
+    virtual ~noncopyable() = default;
     noncopyable(const noncopyable &) = delete;
     noncopyable &operator=(const noncopyable &) = delete;
-    virtual ~noncopyable() = default;
 };
 class istream : public noncopyable {
   private:
