@@ -45,6 +45,23 @@ struct setw {
 };
 } // namespace symbols
 namespace interface {
+template <typename T>
+concept signed_integral = std::signed_integral<T> || std::same_as<T, __int128>;
+template <typename T>
+concept unsigned_integral = std::unsigned_integral<T> || std::same_as<T, unsigned __int128>;
+template <typename T>
+concept integral = signed_integral<T> || unsigned_integral<T>;
+template <typename T>
+concept floating_point = std::floating_point<T> || std::same_as<T, __float128>;
+template <integral T> struct make_unsigned {
+    using type = std::make_unsigned<T>::type;
+};
+template <> struct make_unsigned<__int128> {
+    using type = unsigned __int128;
+};
+template <> struct make_unsigned<unsigned __int128> {
+    using type = unsigned __int128;
+};
 class noncopyable {
   public:
     noncopyable() = default;
@@ -74,11 +91,11 @@ class istream : public noncopyable {
         return now;
     }
     explicit operator bool() { return !fail; }
-    template <std::integral T> istream &operator>>(T &n) {
+    template <integral T> istream &operator>>(T &n) {
         bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
-            if (isgraph(c) && std::is_signed_v<T>) f = c == '-';
+            if (isgraph(c) && signed_integral<T>) f = c == '-';
         if (eof) {
             fail = true;
             return *this;
@@ -89,7 +106,7 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
-    template <std::floating_point T> istream &operator>>(T &n) {
+    template <floating_point T> istream &operator>>(T &n) {
         bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
@@ -214,12 +231,12 @@ class ostream : public noncopyable {
         vflush();
         return *this;
     }
-    template <std::integral T> ostream &operator<<(T n) {
+    template <integral T> ostream &operator<<(T n) {
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
         bool f = n < 0;
         if (f) n = -n;
-        std::make_unsigned_t<T> m = n;
+        typename make_unsigned<T>::type m = n;
         if (!m) *p-- = '0';
         while (m) *p-- = toalpha(m % base), m /= base;
         if (showbase) {
@@ -234,7 +251,7 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <std::floating_point T> ostream &operator<<(T n) {
+    template <floating_point T> ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
         bool f = n < 0;
