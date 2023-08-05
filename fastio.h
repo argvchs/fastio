@@ -1,9 +1,9 @@
 #include <algorithm>
-#include <bit>
 #include <cctype>
 #include <cmath>
 #include <concepts>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -50,7 +50,7 @@ struct setw {
     int width;
     setw(int n) : width(n) {}
 };
-} // namespace symbols
+}
 namespace interface {
 template <typename T>
 concept signed_integral = std::signed_integral<T> || std::same_as<T, __int128>;
@@ -60,16 +60,20 @@ template <typename T>
 concept integral = signed_integral<T> || unsigned_integral<T>;
 template <typename T>
 concept floating_point = std::floating_point<T> || std::same_as<T, __float128>;
-template <typename T> struct make_unsigned {
+template <typename T>
+struct make_unsigned {
     using type = std::make_unsigned_t<T>;
 };
-template <> struct make_unsigned<__int128> {
+template <>
+struct make_unsigned<__int128> {
     using type = unsigned __int128;
 };
-template <> struct make_unsigned<unsigned __int128> {
+template <>
+struct make_unsigned<unsigned __int128> {
     using type = unsigned __int128;
 };
-template <typename T> using make_unsigned_t = typename make_unsigned<T>::type;
+template <typename T>
+using make_unsigned_t = typename make_unsigned<T>::type;
 struct noncopyable {
     noncopyable() = default;
     virtual ~noncopyable() = default;
@@ -99,7 +103,8 @@ class istream : public noncopyable {
     }
     explicit operator bool() { return !fail; }
     bool operator!() { return fail; }
-    template <integral T> istream &operator>>(T &n) {
+    template <integral T>
+    istream &operator>>(T &n) {
         bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
@@ -114,7 +119,8 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
-    template <floating_point T> istream &operator>>(T &n) {
+    template <floating_point T>
+    istream &operator>>(T &n) {
         bool f = false;
         char c;
         while (!isdigit(c = get()) && !eof)
@@ -143,12 +149,13 @@ class istream : public noncopyable {
         return *this;
     }
     istream &operator>>(bool &f) {
-        long long n;
+        int64_t n;
         *this >> n;
         f = n != 0;
         return *this;
     }
-    template <int N> istream &operator>>(char (&s)[N]) {
+    template <int N>
+    istream &operator>>(char (&s)[N]) {
         int len = 0;
         char c;
         while (isspace(c = get()) && !eof)
@@ -202,7 +209,8 @@ class istream : public noncopyable {
         }
         return *this;
     }
-    template <int N> istream &getline(char (&s)[N], char end = '\n') {
+    template <int N>
+    istream &getline(char (&s)[N], char end = '\n') {
         int len = 0;
         char c;
         if (eof) {
@@ -228,7 +236,7 @@ class istream : public noncopyable {
 class ostream : public noncopyable {
   private:
     int base = 10, precision = 6, width = 0;
-    long long eps = 1e6;
+    int64_t eps = 1e6;
     bool adjust = true, boolalpha = false, showbase = false, showpoint = false, showpos = false,
          kase = false;
     char setfill = ' ';
@@ -240,8 +248,8 @@ class ostream : public noncopyable {
         if (n < 10) return n + '0';
         else return n - 10 + (kase ? 'A' : 'a');
     }
-    long long quickpow(long long n, int m) {
-        long long res = 1;
+    int64_t quickpow(int64_t n, int m) {
+        int64_t res = 1;
         while (m) {
             if (m & 1) res *= n;
             m >>= 1, n *= n;
@@ -262,7 +270,8 @@ class ostream : public noncopyable {
         vflush();
         return *this;
     }
-    template <integral T> ostream &operator<<(T n) {
+    template <integral T>
+    ostream &operator<<(T n) {
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
         bool f = n < 0;
@@ -282,12 +291,13 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <floating_point T> ostream &operator<<(T n) {
+    template <floating_point T>
+    ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
         bool f = n < 0;
         if (f) n = -n;
-        long long m1 = std::floor(n), m2 = std::round((n - m1) * eps);
+        int64_t m1 = std::floor(n), m2 = std::round((n - m1) * eps);
         int len = precision;
         if (m2 >= eps) ++m1, m2 = 0;
         if (!m1) *p1-- = '0';
@@ -348,11 +358,11 @@ class ostream : public noncopyable {
         int n = base;
         bool f = showbase;
         base = 16, showbase = true;
-        *this << std::bit_cast<unsigned long long>(p);
+        *this << (uint64_t)p;
         base = n, showbase = f;
         return *this;
     }
-    ostream &operator<<(std::nullptr_t p) { return *this << (kase ? "NULLPTR" : "nullptr"); }
+    ostream &operator<<(std::nullptr_t) { return *this << (kase ? "NULLPTR" : "nullptr"); }
     ostream &operator<<(symbols::symbol a) {
         if (a == symbols::endl) vput('\n');
         else if (a == symbols::ends) vput(' ');
@@ -400,7 +410,7 @@ class ostream : public noncopyable {
         return *this;
     }
 };
-} // namespace interface
+}
 const int SIZ = 0xfffff;
 class istream : public interface::istream {
   private:
@@ -476,4 +486,4 @@ class ofstream : public ostream {
 };
 istream is;
 ostream os;
-}; // namespace fastio
+};
