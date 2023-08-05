@@ -43,11 +43,11 @@ fastio.in           # 读写测试数据
 
 -   `is >> s;`
 
-    读取一个字符串 `s`，**s 只能为字符数组，不能为指针**
+    读取一个字符串 `s`
 
 -   `is.getline(s);`
 
-    读取一行到 `s`，**s 只能为字符数组，不能为指针**
+    读取一行到 `s`
 
 -   `is.getline(s, end);`
 
@@ -191,32 +191,23 @@ fastio.in           # 读写测试数据
 
 **注意要用 `fastio::interface::istream` `fastio::interface::ostream` 来重载**
 
-以下是一些示例程序
+以下是重载 `std::vector` 的示例程序
 
 ```cpp
-auto &operator<<(fastio::interface::istream &is, string &s) {
-    static char buf[1005];
-    is >> buf;
-    s = buf;
-    return is;
-}
-auto &operator<<(fastio::interface::ostream &os, const string &s) { return os << s.c_str(); }
-```
-
-```cpp
-template<class T> auto& operator<<(fastio::interface::istream& is, vector<T>& v) {
-    v.clear();
-    int n;
+template <typename T, typename U>
+auto &operator<<(fastio::interface::istream &is, vector<T, U> &v) {
+    int n, m;
     is >> n;
+    v.clear();
     while (n--) {
-        T x;
-        is >> x;
-        v.push_back(x);
+        is >> m;
+        v.push_back(m);
     }
     return os;
 }
-template<class T> auto& operator<<(fastio::interface::ostream& os, const vector<T> &v) {
-    for (T x : v) os << x << ' ';
+template <typename T, typename U>
+auto &operator<<(fastio::interface::ostream &os, const vector<T> &v) {
+    for (const T &i : v) os << i << ' ';
     return os;
 }
 ```
