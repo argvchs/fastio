@@ -10,6 +10,7 @@ int main() {
     bool f;
     char c, s[105];
     double d;
+    os << std::string("114514");
     ifs >> n >> m >> f >> c >> s >> d;
     ofs << n << ends << m << ends << f << ends << c << ends << s << ends << d << endl;
     ifs.ignore().getline(s);

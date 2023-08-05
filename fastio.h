@@ -3,8 +3,11 @@
 #include <cctype>
 #include <cmath>
 #include <concepts>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <string_view>
 #include <type_traits>
 namespace fastio {
 namespace symbols {
@@ -90,6 +93,7 @@ class istream : public noncopyable {
         return now;
     }
     explicit operator bool() { return !fail; }
+    bool operator!() { return fail; }
     template <integral T> istream &operator>>(T &n) {
         bool f = false;
         char c;
@@ -154,6 +158,19 @@ class istream : public noncopyable {
         pre = true;
         return *this;
     }
+    istream &operator>>(std::string &s) {
+        char c;
+        while (isspace(c = get()) && !eof)
+            ;
+        if (eof) {
+            fail = true;
+            return *this;
+        }
+        pre = true;
+        while (isgraph(c = get())) s.push_back(c);
+        pre = true;
+        return *this;
+    }
     istream &operator>>(symbols::symbol a) {
         if (a == symbols::bin) base = 2;
         else if (a == symbols::oct) base = 8;
@@ -190,6 +207,16 @@ class istream : public noncopyable {
         memset(s, '\0', sizeof(s));
         while ((c = get()) != end && !eof && len < N) s[len++] = c;
         if (s[len - 1] == '\r' && end == '\n') s[--len] = '\0';
+        return *this;
+    }
+    istream &getline(std::string &s, char end = '\n') {
+        char c;
+        if (eof) {
+            fail = true;
+            return *this;
+        }
+        while ((c = get()) != end && !eof) s.push_back(c);
+        if (s.back() == '\r' && end == '\n') s.pop_back();
         return *this;
     }
 };
@@ -289,6 +316,20 @@ class ostream : public noncopyable {
         int n = strlen(s);
         if (adjust) fill(n);
         vputs(s, n);
+        if (!adjust) fill(n);
+        return *this;
+    }
+    ostream &operator<<(const std::string &s) {
+        int n = s.size();
+        if (adjust) fill(n);
+        vputs(s.data(), n);
+        if (!adjust) fill(n);
+        return *this;
+    }
+    ostream &operator<<(std::string_view sv) {
+        int n = sv.size();
+        if (adjust) fill(n);
+        vputs(sv.data(), n);
         if (!adjust) fill(n);
         return *this;
     }
