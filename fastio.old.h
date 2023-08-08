@@ -363,7 +363,7 @@ class ostream : public noncopyable {
         int n = base;
         bool f = showbase;
         base = 16, showbase = true;
-        *this << (u64)p;
+        *this << reinterpret_cast<u64>(p);
         base = n, showbase = f;
         return *this;
     }

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <bit>
 #include <cctype>
 #include <cmath>
 #include <concepts>
@@ -362,7 +363,7 @@ class ostream : public noncopyable {
         int n = base;
         bool f = showbase;
         base = 16, showbase = true;
-        *this << (u64)p;
+        *this << std::bit_cast<u64>(p);
         base = n, showbase = f;
         return *this;
     }
