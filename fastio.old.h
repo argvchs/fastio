@@ -2,7 +2,6 @@
 #include <cctype>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -51,12 +50,16 @@ struct setw {
 };
 }
 namespace interface {
+using i64 = long long;
+using u64 = unsigned long long;
+using i128 = __int128;
+using u128 = unsigned __int128;
 template <typename T>
 constexpr bool is_signed_v =
-    std::is_integral_v<T> && std::is_signed_v<T> || std::is_same_v<T, __int128>;
+    std::is_integral_v<T> && std::is_signed_v<T> || std::is_same_v<T, i128>;
 template <typename T>
 constexpr bool is_unsigned_v =
-    std::is_integral_v<T> && std::is_unsigned_v<T> || std::is_same_v<T, unsigned __int128>;
+    std::is_integral_v<T> && std::is_unsigned_v<T> || std::is_same_v<T, u128>;
 template <typename T>
 constexpr bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
 template <typename T>
@@ -66,12 +69,12 @@ struct make_unsigned {
     using type = std::make_unsigned_t<T>;
 };
 template <>
-struct make_unsigned<__int128> {
-    using type = unsigned __int128;
+struct make_unsigned<i128> {
+    using type = u128;
 };
 template <>
-struct make_unsigned<unsigned __int128> {
-    using type = unsigned __int128;
+struct make_unsigned<u128> {
+    using type = u128;
 };
 template <typename T>
 using make_unsigned_t = typename make_unsigned<T>::type;
@@ -150,7 +153,7 @@ class istream : public noncopyable {
         return *this;
     }
     istream &operator>>(bool &f) {
-        int64_t n;
+        i64 n;
         *this >> n;
         f = n != 0;
         return *this;
@@ -165,10 +168,9 @@ class istream : public noncopyable {
             fail = true;
             return *this;
         }
-        memset(s, '\0', sizeof(s));
         pre = true;
         while (isgraph(c = get()) && len < N) s[len++] = c;
-        pre = true;
+        pre = true, s[len] = '\0';
         return *this;
     }
     istream &operator>>(std::string &s) {
@@ -179,6 +181,7 @@ class istream : public noncopyable {
             fail = true;
             return *this;
         }
+        s.clear();
         pre = true;
         while (isgraph(c = get())) s.push_back(c);
         pre = true;
@@ -218,9 +221,9 @@ class istream : public noncopyable {
             fail = true;
             return *this;
         }
-        memset(s, '\0', sizeof(s));
         while ((c = get()) != end && !eof && len < N) s[len++] = c;
-        if (s[len - 1] == '\r' && end == '\n') s[--len] = '\0';
+        if (s[len - 1] == '\r' && end == '\n') --len;
+        s[len] = '\0';
         return *this;
     }
     istream &getline(std::string &s, char end = '\n') {
@@ -229,6 +232,7 @@ class istream : public noncopyable {
             fail = true;
             return *this;
         }
+        s.clear();
         while ((c = get()) != end && !eof) s.push_back(c);
         if (s.back() == '\r' && end == '\n') s.pop_back();
         return *this;
@@ -237,7 +241,7 @@ class istream : public noncopyable {
 class ostream : public noncopyable {
   private:
     int base = 10, precision = 6, width = 0;
-    int64_t eps = 1e6;
+    i64 eps = 1e6;
     bool adjust = true, boolalpha = false, showbase = false, showpoint = false, showpos = false,
          kase = false;
     char setfill = ' ';
@@ -249,8 +253,8 @@ class ostream : public noncopyable {
         if (n < 10) return n + '0';
         else return n - 10 + (kase ? 'A' : 'a');
     }
-    int64_t quickpow(int64_t n, int m) {
-        int64_t res = 1;
+    i64 quickpow(i64 n, int m) {
+        i64 res = 1;
         while (m) {
             if (m & 1) res *= n;
             m >>= 1, n *= n;
@@ -298,7 +302,7 @@ class ostream : public noncopyable {
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
         bool f = n < 0;
         if (f) n = -n;
-        int64_t m1 = std::floor(n), m2 = std::round((n - m1) * eps);
+        i64 m1 = std::floor(n), m2 = std::round((n - m1) * eps);
         int len = precision;
         if (m2 >= eps) ++m1, m2 = 0;
         if (!m1) *p1-- = '0';
@@ -359,7 +363,7 @@ class ostream : public noncopyable {
         int n = base;
         bool f = showbase;
         base = 16, showbase = true;
-        *this << (uint64_t)p;
+        *this << (u64)p;
         base = n, showbase = f;
         return *this;
     }
