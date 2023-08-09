@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <bit>
 #include <cctype>
 #include <cmath>
 #include <concepts>
@@ -96,6 +95,7 @@ class istream : public noncopyable {
         else return base;
     }
     bool isdigit(char c) { return todigit(c) < base; }
+    bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
     virtual char vget() = 0;
 
   public:
@@ -109,15 +109,16 @@ class istream : public noncopyable {
     bool operator!() { return fail; }
     template <integral T>
     istream &operator>>(T &n) {
+        n = 0;
         bool f = false;
         char c;
-        while (!isdigit(c = get()) && !eof)
-            if (isgraph(c) && signed_integral<T>) f = c == '-';
+        while (isssign(c = get()) && !eof)
+            if (c == '-' && signed_integral<T>) f ^= true;
         if (eof) {
             fail = true;
             return *this;
         }
-        pre = true, n = 0;
+        pre = true;
         while (isdigit(c = get())) n = n * base + todigit(c);
         if (f) n = -n;
         pre = true;
@@ -125,19 +126,20 @@ class istream : public noncopyable {
     }
     template <floating_point T>
     istream &operator>>(T &n) {
+        n = 0;
         bool f = false;
         char c;
-        while (!isdigit(c = get()) && !eof)
-            if (isgraph(c)) f = c == '-';
+        while (isssign(c = get()) && !eof)
+            if (c == '-') f ^= true;
         if (eof) {
             fail = true;
             return *this;
         }
-        pre = true, n = 0;
+        pre = true;
         while (isdigit(c = get())) n = n * base + todigit(c);
         if (c == '.') {
-            T pow = 1;
-            while (isdigit(c = get())) n += todigit(c) / (pow *= base);
+            i64 pow = 1;
+            while (isdigit(c = get())) n += todigit(c) / (T)(pow *= base);
         }
         if (f) n = -n;
         pre = true;
@@ -147,7 +149,7 @@ class istream : public noncopyable {
         while (isspace(c = get()) && !eof)
             ;
         if (eof) {
-            fail = true;
+            fail = true, c = '\0';
             return *this;
         }
         return *this;
@@ -155,11 +157,12 @@ class istream : public noncopyable {
     istream &operator>>(bool &f) {
         i64 n;
         *this >> n;
-        f = n != 0;
+        f = (bool)n;
         return *this;
     }
     template <int N>
     istream &operator>>(char (&s)[N]) {
+        s[0] = '\0';
         int len = 0;
         char c;
         while (isspace(c = get()) && !eof)
@@ -174,6 +177,7 @@ class istream : public noncopyable {
         return *this;
     }
     istream &operator>>(std::string &s) {
+        s.clear();
         char c;
         while (isspace(c = get()) && !eof)
             ;
@@ -181,7 +185,6 @@ class istream : public noncopyable {
             fail = true;
             return *this;
         }
-        s.clear();
         pre = true;
         while (isgraph(c = get())) s.push_back(c);
         pre = true;
@@ -215,6 +218,7 @@ class istream : public noncopyable {
     }
     template <int N>
     istream &getline(char (&s)[N], char end = '\n') {
+        s[0] = '\0';
         int len = 0;
         char c;
         if (eof) {
@@ -227,12 +231,12 @@ class istream : public noncopyable {
         return *this;
     }
     istream &getline(std::string &s, char end = '\n') {
+        s.clear();
         char c;
         if (eof) {
             fail = true;
             return *this;
         }
-        s.clear();
         while ((c = get()) != end && !eof) s.push_back(c);
         if (s.back() == '\r' && end == '\n') s.pop_back();
         return *this;
@@ -363,7 +367,7 @@ class ostream : public noncopyable {
         int n = base;
         bool f = showbase;
         base = 16, showbase = true;
-        *this << std::bit_cast<u64>(p);
+        *this << (u64)p;
         base = n, showbase = f;
         return *this;
     }
