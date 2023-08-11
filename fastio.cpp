@@ -1,5 +1,4 @@
 #include "fastio.h"
-#include <numbers>
 using namespace fastio;
 using namespace symbols;
 ifstream ifs("fastio.in");
