@@ -200,7 +200,7 @@ class istream : public noncopyable {
             char c;
             *this >> c;
             pre = 1;
-        } else if (a == symbols::reset) base = 10;
+        } else base = 10;
         return *this;
     }
     istream &operator>>(symbols::setbase a) {
@@ -393,7 +393,7 @@ class ostream : public noncopyable {
         else if (a == symbols::noshowpos) showpos = false;
         else if (a == symbols::uppercase) kase = true;
         else if (a == symbols::lowercase) kase = false;
-        else if (a == symbols::reset) {
+        else {
             base = 10, precision = 6, width = 0, eps = 1e6;
             adjust = true;
             boolalpha = showpos = showpoint = showbase = kase = false;
