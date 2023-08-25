@@ -302,14 +302,14 @@ class ostream : public noncopyable {
     template <floating_point T>
     ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
-        if (isinf(n)) {
+        if (std::isinf(n)) {
             if (n > 0) {
                 if (showpos) *this << (kase ? "+INF" : "+inf");
                 else *this << (kase ? "INF" : "inf");
             } else *this << (kase ? "-INF" : "-inf");
             return *this;
         }
-        if (isnan(n)) return *this << (kase ? "NAN" : "nan");
+        if (std::isnan(n)) return *this << (kase ? "NAN" : "nan");
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
         bool f = n < 0;
         if (f) n = -n;
