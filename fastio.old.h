@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -13,9 +14,9 @@ enum symbol {
     endl,
     ends,
     flush,
-    dec,
     bin,
     oct,
+    dec,
     hex,
     left,
     right,
@@ -27,9 +28,11 @@ enum symbol {
     noshowpoint,
     showpos,
     noshowpos,
-    skipws,
+    ws,
     uppercase,
     lowercase,
+    fixed,
+    defaultfloat,
     reset
 };
 struct setbase {
@@ -56,10 +59,10 @@ using i128 = __int128;
 using u128 = unsigned __int128;
 template <typename T>
 constexpr bool is_signed_v =
-    std::is_integral_v<T> && std::is_signed_v<T> || std::is_same_v<T, i128>;
+    (std::is_integral_v<T> && std::is_signed_v<T>) || std::is_same_v<T, i128>;
 template <typename T>
 constexpr bool is_unsigned_v =
-    std::is_integral_v<T> && std::is_unsigned_v<T> || std::is_same_v<T, u128>;
+    (std::is_integral_v<T> && std::is_unsigned_v<T>) || std::is_same_v<T, u128>;
 template <typename T>
 constexpr bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
 template <typename T>
@@ -91,9 +94,9 @@ class istream : public noncopyable {
     char now = '\0';
     int todigit(char c) {
         if (::isdigit(c)) return c - '0';
-        else if (isupper(c)) return c - 'A' + 10;
-        else if (islower(c)) return c - 'a' + 10;
-        else return base;
+        if (isupper(c)) return c - 'A' + 10;
+        if (islower(c)) return c - 'a' + 10;
+        return base;
     }
     bool isdigit(char c) { return todigit(c) < base; }
     bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
@@ -192,15 +195,18 @@ class istream : public noncopyable {
         return *this;
     }
     istream &operator>>(symbols::symbol a) {
-        if (a == symbols::bin) base = 2;
-        else if (a == symbols::oct) base = 8;
-        else if (a == symbols::dec) base = 10;
-        else if (a == symbols::hex) base = 16;
-        else if (a == symbols::skipws) {
+        switch (a) {
+        case symbols::bin: base = 2; break;
+        case symbols::oct: base = 8; break;
+        case symbols::dec: base = 10; break;
+        case symbols::hex: base = 16; break;
+        case symbols::ws:
             char c;
             *this >> c;
-            pre = 1;
-        } else base = 10;
+            pre = true;
+            break;
+        default: base = 10;
+        }
         return *this;
     }
     istream &operator>>(symbols::setbase a) {
@@ -248,7 +254,7 @@ class ostream : public noncopyable {
     int base = 10, precision = 6, width = 0;
     i64 eps = 1e6;
     bool adjust = true, boolalpha = false, showbase = false, showpoint = false, showpos = false,
-         kase = false;
+         kase = false, fixed = false;
     char setfill = ' ';
     void fill(int n) {
         if (width > n) vfill(setfill, width - n);
@@ -256,13 +262,13 @@ class ostream : public noncopyable {
     }
     char toalpha(int n) {
         if (n < 10) return n + '0';
-        else return n - 10 + (kase ? 'A' : 'a');
+        return n - 10 + (kase ? 'A' : 'a');
     }
     i64 quickpow(i64 n, int m) {
         i64 res = 1;
         while (m) {
             if (m & 1) res *= n;
-            m >>= 1, n *= n;
+            n *= n, m >>= 1;
         }
         return res;
     }
@@ -272,14 +278,7 @@ class ostream : public noncopyable {
     virtual void vflush() = 0;
 
   public:
-    ostream &put(char c) {
-        vput(c);
-        return *this;
-    }
-    ostream &flush() {
-        vflush();
-        return *this;
-    }
+    void put(char c) { vput(c); }
     template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0>
     ostream &operator<<(T n) {
         static char buf[105];
@@ -289,13 +288,14 @@ class ostream : public noncopyable {
         make_unsigned_t<T> m = n;
         if (!m) *p-- = '0';
         while (m) *p-- = toalpha(m % base), m /= base;
-        if (showbase) {
-            if (base == 2) *p-- = kase ? 'B' : 'b', *p-- = '0';
-            else if (base == 16) *p-- = kase ? 'X' : 'x', *p-- = '0';
-            else if (base == 8) *p-- = '0';
-        }
-        if (f) *p-- = '-';
-        else if (showpos) *p-- = '+';
+        if (showbase) switch (base) {
+            case 2: *p-- = kase ? 'B' : 'b', *p-- = '0'; break;
+            case 8: *p-- = '0'; break;
+            case 16: *p-- = kase ? 'X' : 'x', *p-- = '0'; break;
+            }
+        if (!f) {
+            if (showpos && is_signed_v<T>) *p-- = '+';
+        } else *p-- = '-';
         if (adjust) fill(q - p);
         vputs(p + 1, q - p);
         if (!adjust) fill(q - p);
@@ -304,6 +304,14 @@ class ostream : public noncopyable {
     template <typename T, std::enable_if_t<is_floating_point_v<T>, int> = 0>
     ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
+        if (isinf(n)) {
+            if (n > 0) {
+                if (showpos) *this << (kase ? "+INF" : "+inf");
+                else *this << (kase ? "INF" : "inf");
+            } else *this << (kase ? "-INF" : "-inf");
+            return *this;
+        }
+        if (isnan(n)) return *this << (kase ? "NAN" : "nan");
         char *p1 = buf1 + 100, *q1 = buf1 + 100, *p2 = buf2 + 100, *q2 = buf2 + 100;
         bool f = n < 0;
         if (f) n = -n;
@@ -313,18 +321,17 @@ class ostream : public noncopyable {
         if (!m1) *p1-- = '0';
         while (m1) *p1-- = toalpha(m1 % base), m1 /= base;
         while (len--) *p2-- = toalpha(m2 % base), m2 /= base;
-        if (showbase) {
-            if (base == 2) *p1-- = kase ? 'B' : 'b', *p1-- = '0';
-            else if (base == 16) *p1-- = kase ? 'X' : 'x', *p1-- = '0';
-            else if (base == 8) *p1-- = '0';
-        }
-        if (f) *p1-- = '-';
-        else if (showpos) *p1-- = '+';
-        if (showpoint) *p2-- = '.';
-        else {
+        if (showbase) switch (base) {
+            case 2: *p1-- = kase ? 'B' : 'b', *p1-- = '0'; break;
+            case 8: *p1-- = '0'; break;
+            case 16: *p1-- = kase ? 'X' : 'x', *p1-- = '0'; break;
+            }
+        if (!f) {
+            if (showpos) *p1-- = '+';
+        } else *p1-- = '-';
+        if (!fixed)
             while (*q2 == '0' && p2 != q2) --q2;
-            if (p2 != q2) *p2-- = '.';
-        }
+        if (showpoint || p2 != q2) *p2-- = '.';
         if (adjust) fill((q1 - p1) + (q2 - p2));
         vputs(p1 + 1, q1 - p1);
         vputs(p2 + 1, q2 - p2);
@@ -359,10 +366,14 @@ class ostream : public noncopyable {
         return *this;
     }
     ostream &operator<<(bool f) {
-        if (boolalpha) {
-            if (kase) return *this << (f ? "TRUE" : "FALSE");
-            else return *this << (f ? "true" : "false");
-        } else return *this << (f ? "1" : "0");
+        if (f) {
+            if (boolalpha) *this << (kase ? "TRUE" : "true");
+            else *this << '1';
+        } else {
+            if (boolalpha) *this << (kase ? "FALSE" : "false");
+            else *this << '0';
+        }
+        return *this;
     }
     ostream &operator<<(const void *p) {
         int n = base;
@@ -374,29 +385,32 @@ class ostream : public noncopyable {
     }
     ostream &operator<<(std::nullptr_t) { return *this << (kase ? "NULLPTR" : "nullptr"); }
     ostream &operator<<(symbols::symbol a) {
-        if (a == symbols::endl) vput('\n');
-        else if (a == symbols::ends) vput(' ');
-        else if (a == symbols::flush) vflush();
-        else if (a == symbols::dec) eps = quickpow(base = 10, precision);
-        else if (a == symbols::bin) eps = quickpow(base = 2, precision);
-        else if (a == symbols::oct) eps = quickpow(base = 8, precision);
-        else if (a == symbols::hex) eps = quickpow(base = 16, precision);
-        else if (a == symbols::left) adjust = false;
-        else if (a == symbols::right) adjust = true;
-        else if (a == symbols::boolalpha) boolalpha = true;
-        else if (a == symbols::noboolalpha) boolalpha = false;
-        else if (a == symbols::showbase) showbase = true;
-        else if (a == symbols::noshowbase) showbase = false;
-        else if (a == symbols::showpoint) showpoint = true;
-        else if (a == symbols::noshowpoint) showpoint = false;
-        else if (a == symbols::showpos) showpos = true;
-        else if (a == symbols::noshowpos) showpos = false;
-        else if (a == symbols::uppercase) kase = true;
-        else if (a == symbols::lowercase) kase = false;
-        else {
+        switch (a) {
+        case symbols::endl: vput('\n'); break;
+        case symbols::ends: vput(' '); break;
+        case symbols::flush: vflush(); break;
+        case symbols::bin: eps = quickpow(base = 2, precision); break;
+        case symbols::oct: eps = quickpow(base = 8, precision); break;
+        case symbols::dec: eps = quickpow(base = 10, precision); break;
+        case symbols::hex: eps = quickpow(base = 16, precision); break;
+        case symbols::left: adjust = false; break;
+        case symbols::right: adjust = true; break;
+        case symbols::boolalpha: boolalpha = true; break;
+        case symbols::noboolalpha: boolalpha = false; break;
+        case symbols::showbase: showbase = true; break;
+        case symbols::noshowbase: showbase = false; break;
+        case symbols::showpoint: showpoint = true; break;
+        case symbols::noshowpoint: showpoint = false; break;
+        case symbols::showpos: showpos = true; break;
+        case symbols::noshowpos: showpos = false; break;
+        case symbols::uppercase: kase = true; break;
+        case symbols::lowercase: kase = false; break;
+        case symbols::fixed: fixed = true; break;
+        case symbols::defaultfloat: fixed = false; break;
+        default:
             base = 10, precision = 6, width = 0, eps = 1e6;
             adjust = true;
-            boolalpha = showpos = showpoint = showbase = kase = false;
+            boolalpha = showbase = showpoint = showpos = kase = fixed = false;
             setfill = ' ';
         }
         return *this;
@@ -421,7 +435,7 @@ class ostream : public noncopyable {
     }
 };
 }
-const int SIZ = 0xfffff;
+const int SIZ = 1 << 16;
 class istream : public interface::istream {
   private:
     char buf[SIZ], *p = buf, *q = buf;
