@@ -51,7 +51,7 @@ fastio.in           # 读写测试数据
 
 -   `is.getline(s, end);`
 
-    读取字符到 `s`，一直读到 `end` 停止，**s 只能为字符数组，不能为指针**。
+    读取字符到 `s`，一直读到 `end` 停止
 
 -   `is.ignore();`
 
@@ -61,7 +61,7 @@ fastio.in           # 读写测试数据
 
     忽略字符到 c 停止。
 
--   `while (is >> n);`
+-   `while (is >> n) ;`
 
     一直读取直到末尾。
 
@@ -93,7 +93,7 @@ fastio.in           # 读写测试数据
 
     写入一个字符 `c`。
 
--   `os.flush();` `os << flush;`
+-   `os << flush;`
 
     刷新流。
 
@@ -123,9 +123,17 @@ fastio.in           # 读写测试数据
 
 -   `os << showpoint;`
 
-    设置写入浮点数时严格保留 `setprecision` 时设置的位数。
+    设置写入浮点数时总是添加小数点。
 
 -   `os << noshowpoint;`
+
+    设置写入浮点数时不总是添加小数点。
+
+-   `os << fixed;`
+
+    设置写入浮点数时严格保留 `setprecision` 时设置的位数。
+
+-   `os << defaultfloat;`
 
     设置写入浮点数时不严格保留 `setprecision` 时设置的位数。
 
