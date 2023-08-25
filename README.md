@@ -12,7 +12,7 @@ g++ <filename>.cpp -o <filename> -std=c++20 -Wall
 
 # 1. 目录解释
 
-```
+```plaintext
 fastio.cpp          # 测试代码
 fastio.h            # FastIO 库源代码
 fastio.old.h        # FastIO 库源代码，兼容 C++17
