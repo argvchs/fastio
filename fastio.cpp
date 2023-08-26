@@ -1,5 +1,5 @@
 #include "fastio.h"
-#include <limits>
+#include <numeric>
 using namespace fastio;
 using namespace symbols;
 using u32 = unsigned;
