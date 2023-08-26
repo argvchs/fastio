@@ -433,7 +433,7 @@ class ostream : public noncopyable {
     }
 };
 }
-const int SIZ = 1 << 16;
+const int SIZ = 0xfffff;
 class istream : public interface::istream {
   private:
     char buf[SIZ], *p = buf, *q = buf;
