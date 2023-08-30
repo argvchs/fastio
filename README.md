@@ -4,18 +4,12 @@
 
 虽然相对于原版函数式 `fread` 快读会有点慢，但还是比 `getchar` `putchar` 要快的。
 
-FastIO 用了 C++20，用以下编译参数即可。
-
-```bash
-g++ <filename>.cpp -o <filename> -std=c++20 -Wall
-```
-
 # 1. 目录解释
 
 ```plaintext
 fastio.cpp          # 测试代码
-fastio.h            # FastIO 库源代码
-fastio.old.h        # FastIO 库源代码，兼容 C++17
+fastio.hpp          # FastIO 库源代码
+fastio.beta.hpp     # FastIO 库源代码，使用 C++20
 fastio.in           # 读写测试数据
 ```
 

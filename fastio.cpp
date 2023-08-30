@@ -1,5 +1,5 @@
-#include "fastio.h"
-#include <numeric>
+#include "fastio.hpp"
+#include <limits>
 using namespace fastio;
 using namespace symbols;
 using u32 = unsigned;
@@ -32,8 +32,8 @@ int main() {
     ofs << std::numeric_limits<f64>::infinity() << ends;
     ofs << std::numeric_limits<f64>::quiet_NaN() << endl;
     ofs << setfill('0');
-    ofs << left << setw(20) << "left" << endl;
-    ofs << right << setw(20) << "right" << endl;
+    ofs << setw(20) << left << "left" << endl;
+    ofs << setw(20) << right << "right" << endl;
     while (ifs >> n) ofs << n << endl;
     return 0;
 }
