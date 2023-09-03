@@ -162,8 +162,7 @@ class istream : public noncopyable {
         f = (bool)n;
         return *this;
     }
-    template <int N>
-    istream &operator>>(char (&s)[N]) {
+    istream &operator>>(char *s) {
         s[0] = '\0';
         int len = 0;
         char c;
@@ -174,7 +173,7 @@ class istream : public noncopyable {
             return *this;
         }
         pre = true;
-        while (isgraph(c = get()) && len < N) s[len++] = c;
+        while (isgraph(c = get())) s[len++] = c;
         pre = true, s[len] = '\0';
         return *this;
     }
@@ -221,8 +220,7 @@ class istream : public noncopyable {
         }
         return *this;
     }
-    template <int N>
-    istream &getline(char (&s)[N], char end = '\n') {
+    istream &getline(char *s, char end = '\n') {
         s[0] = '\0';
         int len = 0;
         char c;
@@ -230,7 +228,7 @@ class istream : public noncopyable {
             fail = true;
             return *this;
         }
-        while ((c = get()) != end && !eof && len < N) s[len++] = c;
+        while ((c = get()) != end && !eof) s[len++] = c;
         if (s[len - 1] == '\r' && end == '\n') --len;
         s[len] = '\0';
         return *this;
