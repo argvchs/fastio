@@ -262,12 +262,10 @@ class ostream : public noncopyable {
         return n - 10 + (kase ? 'A' : 'a');
     }
     i64 quickpow(i64 n, int m) {
-        i64 res = 1;
-        while (m) {
-            if (m & 1) res *= n;
-            n *= n, m >>= 1;
-        }
-        return res;
+        i64 ret = 1;
+        for (int i = m; i; i >>= 1, n *= n)
+            if (i & 1) ret *= n;
+        return ret;
     }
     virtual void vput(char) = 0;
     virtual void vputs(const char *, int) = 0;
