@@ -89,7 +89,7 @@ class istream : public noncopyable {
   private:
     int base = 10;
     bool pre = false, eof = false, fail = false;
-    char now = '\0';
+    char cur = '\0';
     int todigit(char c) {
         if (::isdigit(c)) return c - '0';
         if (isupper(c)) return c - 'A' + 10;
@@ -103,9 +103,9 @@ class istream : public noncopyable {
   public:
     char get() {
         if (!pre)
-            if ((now = vget()) == EOF) eof = true;
+            if ((cur = vget()) == EOF) eof = true;
         pre = false;
-        return now;
+        return cur;
     }
     explicit operator bool() { return !fail; }
     bool operator!() { return fail; }
