@@ -249,8 +249,8 @@ class ostream : public noncopyable {
   private:
     int base = 10, precision = 6, width = 0;
     i64 eps = 1e6;
-    bool adjust = true, boolalpha = false, showbase = false, showpoint = false, showpos = false,
-         kase = false, fixed = false;
+    bool adjust = true, boolalpha = false, showbase = false, showpoint = false,
+         showpos = false, kase = false, fixed = false;
     char setfill = ' ';
     void fill(int n) {
         if (width > n) vfill(setfill, width - n);
@@ -377,7 +377,9 @@ class ostream : public noncopyable {
         base = n, showbase = f;
         return *this;
     }
-    ostream &operator<<(std::nullptr_t) { return *this << (kase ? "NULLPTR" : "nullptr"); }
+    ostream &operator<<(std::nullptr_t) {
+        return *this << (kase ? "NULLPTR" : "nullptr");
+    }
     ostream &operator<<(symbols::symbol a) {
         switch (a) {
         case symbols::endl: vput('\n'); break;

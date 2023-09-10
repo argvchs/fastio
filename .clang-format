@@ -1,14 +1,14 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: -2
 AlwaysBreakTemplateDeclarations: true
-AllowShortBlocksOnASingleLine: true
+AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
-ColumnLimit: 100
+ColumnLimit: 90
 FixNamespaceComments: false
 IndentWidth: 4
 TabWidth: 4
