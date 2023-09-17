@@ -91,14 +91,13 @@ class istream : public noncopyable {
     int base = 10;
     bool pre = false, eof = false, fail = false;
     char cur = '\0';
-    int todigit(char c) {
-        if (::isdigit(c)) return c - '0';
+    static int todigit(char c) {
         if (isupper(c)) return c - 'A' + 10;
         if (islower(c)) return c - 'a' + 10;
-        return base;
+        return c - '0';
     }
+    static bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
     bool isdigit(char c) { return todigit(c) < base; }
-    bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
     virtual char vget() = 0;
 
   public:
@@ -253,6 +252,12 @@ class ostream : public noncopyable {
     bool adjust = true, boolalpha = false, showbase = false, showpoint = false,
          showpos = false, kase = false, fixed = false;
     char setfill = ' ';
+    static i64 quickpow(i64 n, int m) {
+        i64 ret = 1;
+        for (int i = m; i; i >>= 1, n *= n)
+            if (i & 1) ret *= n;
+        return ret;
+    }
     void fill(int n) {
         if (width > n) vfill(setfill, width - n);
         width = 0;
@@ -260,12 +265,6 @@ class ostream : public noncopyable {
     char toalpha(int n) {
         if (n < 10) return n + '0';
         return n - 10 + (kase ? 'A' : 'a');
-    }
-    i64 quickpow(i64 n, int m) {
-        i64 ret = 1;
-        for (int i = m; i; i >>= 1, n *= n)
-            if (i & 1) ret *= n;
-        return ret;
     }
     virtual void vput(char) = 0;
     virtual void vputs(const char *, int) = 0;
@@ -436,7 +435,7 @@ const int SIZ = 1 << 20;
 class istream : public interface::istream {
   private:
     char buf[SIZ], *p = buf, *q = buf;
-    char vget() override {
+    virtual char vget() final {
         if (p == q) {
             int len = fread(buf, 1, SIZ, stream);
             if (!len) return EOF;
@@ -453,17 +452,17 @@ class istream : public interface::istream {
 };
 class ifstream : public istream {
   public:
-    ifstream(FILE *p) { istream::stream = p; }
-    ifstream(const char *s) { istream::stream = fopen(s, "r"); }
+    explicit ifstream(FILE *p) { istream::stream = p; }
+    explicit ifstream(const char *s) { istream::stream = fopen(s, "r"); }
 };
 class ostream : public interface::ostream {
   private:
     char buf[SIZ], *p = buf;
-    void vput(char c) override {
+    virtual void vput(char c) final {
         if (p - buf >= SIZ) vflush();
         *p++ = c;
     }
-    void vputs(const char *s, int n) override {
+    virtual void vputs(const char *s, int n) final {
         int used = p - buf, len = 0;
         while (n - len + used >= SIZ) {
             memcpy(buf + used, s + len, SIZ - used);
@@ -474,7 +473,7 @@ class ostream : public interface::ostream {
         memcpy(buf + used, s + len, n - len);
         p = buf + used + n - len;
     }
-    void vfill(char c, int n) override {
+    virtual void vfill(char c, int n) final {
         int used = p - buf, len = 0;
         while (n - len + used >= SIZ) {
             memset(buf + used, c, SIZ - used);
@@ -485,7 +484,7 @@ class ostream : public interface::ostream {
         memset(buf + used, c, n - len);
         p = buf + used + n - len;
     }
-    void vflush() override {
+    virtual void vflush() final {
         fwrite(buf, 1, p - buf, stream);
         p = buf;
         fflush(stream);
@@ -502,8 +501,8 @@ class ostream : public interface::ostream {
 };
 class ofstream : public ostream {
   public:
-    ofstream(FILE *p) { ostream::stream = p; }
-    ofstream(const char *s) { ostream::stream = fopen(s, "w"); }
+    explicit ofstream(FILE *p) { ostream::stream = p; }
+    explicit ofstream(const char *s) { ostream::stream = fopen(s, "w"); }
 };
 istream is;
 ostream os;
