@@ -504,6 +504,6 @@ class ofstream : public ostream {
     explicit ofstream(FILE *p) { ostream::stream = p; }
     explicit ofstream(const char *s) { ostream::stream = fopen(s, "w"); }
 };
-istream is;
-ostream os;
+static istream is;
+static ostream os;
 };
