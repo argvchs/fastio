@@ -15,9 +15,8 @@ int main() {
     std::string t;
     ifs >> n >> m >> f >> c >> s >> d;
     ofs << n << ends << m << ends << f << ends << c << ends << s << ends << d << endl;
-    ifs.ignore();
-    ifs >> ws;
-    ifs.getline(t);
+    ifs.ignore() >> ws;
+    ifs.get(t);
     ofs << t << endl;
     ofs << showbase << showpos;
     ofs << bin << std::numeric_limits<int>::max() << endl;

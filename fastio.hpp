@@ -91,12 +91,13 @@ class istream : public noncopyable {
     int base = 10;
     bool pre = false, eof = false, fail = false;
     char cur = '\0';
-    static int todigit(char c) {
+    static bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
+    int todigit(char c) {
+        if (::isdigit(c)) return c - '0';
         if (isupper(c)) return c - 'A' + 10;
         if (islower(c)) return c - 'a' + 10;
-        return c - '0';
+        return base;
     }
-    static bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
     bool isdigit(char c) { return todigit(c) < base; }
     virtual char vget() = 0;
 
@@ -113,15 +114,14 @@ class istream : public noncopyable {
     istream &operator>>(T &n) {
         n = 0;
         bool f = false;
-        char c;
-        while (isssign(c = get()) && !eof)
-            if (c == '-' && is_signed_v<T>) f ^= true;
+        while (isssign(get()) && !eof)
+            if (cur == '-' && is_integral_v<T>) f ^= true;
         if (eof) {
             fail = true;
             return *this;
         }
         pre = true;
-        while (isdigit(c = get())) n = n * base + todigit(c);
+        while (isdigit(get())) n = n * base + todigit(cur);
         if (f) n = -n;
         pre = true;
         return *this;
@@ -130,30 +130,31 @@ class istream : public noncopyable {
     istream &operator>>(T &n) {
         n = 0;
         bool f = false;
-        char c;
-        while (isssign(c = get()) && !eof)
-            if (c == '-') f ^= true;
+        while (isssign(get()) && !eof)
+            if (cur == '-') f ^= true;
         if (eof) {
             fail = true;
             return *this;
         }
         pre = true;
-        while (isdigit(c = get())) n = n * base + todigit(c);
-        if (c == '.') {
+        while (isdigit(get())) n = n * base + todigit(cur);
+        if (cur == '.') {
             i64 pow = 1;
-            while (isdigit(c = get())) n += todigit(c) / (T)(pow *= base);
+            while (isdigit(get())) n += todigit(cur) / (T)(pow *= base);
         }
         if (f) n = -n;
         pre = true;
         return *this;
     }
     istream &operator>>(char &c) {
-        while (isspace(c = get()) && !eof)
+        c = '\0';
+        while (isspace(get()) && !eof)
             ;
         if (eof) {
-            fail = true, c = '\0';
+            fail = true;
             return *this;
         }
+        c = cur;
         return *this;
     }
     istream &operator>>(bool &f) {
@@ -165,29 +166,27 @@ class istream : public noncopyable {
     istream &operator>>(char *s) {
         s[0] = '\0';
         int len = 0;
-        char c;
-        while (isspace(c = get()) && !eof)
+        while (isspace(get()) && !eof)
             ;
         if (eof) {
             fail = true;
             return *this;
         }
         pre = true;
-        while (isgraph(c = get())) s[len++] = c;
+        while (isgraph(get())) s[len++] = cur;
         pre = true, s[len] = '\0';
         return *this;
     }
     istream &operator>>(std::string &s) {
         s.clear();
-        char c;
-        while (isspace(c = get()) && !eof)
+        while (isspace(get()) && !eof)
             ;
         if (eof) {
             fail = true;
             return *this;
         }
         pre = true;
-        while (isgraph(c = get())) s.push_back(c);
+        while (isgraph(get())) s.push_back(cur);
         pre = true;
         return *this;
     }
@@ -198,8 +197,8 @@ class istream : public noncopyable {
         case symbols::dec: base = 10; break;
         case symbols::hex: base = 16; break;
         case symbols::ws:
-            char c;
-            *this >> c;
+            while (isspace(get()) && !eof)
+                ;
             pre = true;
             break;
         default: base = 10;
@@ -211,8 +210,7 @@ class istream : public noncopyable {
         return *this;
     }
     istream &ignore(char end = '\n') {
-        char c;
-        while ((c = get()) != end && !eof)
+        while (get() != end && !eof)
             ;
         if (eof) {
             fail = true;
@@ -223,25 +221,33 @@ class istream : public noncopyable {
     istream &getline(char *s, char end = '\n') {
         s[0] = '\0';
         int len = 0;
-        char c;
         if (eof) {
             fail = true;
             return *this;
         }
-        while ((c = get()) != end && !eof) s[len++] = c;
+        while (get() != end && !eof) s[len++] = cur;
         if (s[len - 1] == '\r' && end == '\n') --len;
         s[len] = '\0';
         return *this;
     }
     istream &getline(std::string &s, char end = '\n') {
         s.clear();
-        char c;
         if (eof) {
             fail = true;
             return *this;
         }
-        while ((c = get()) != end && !eof) s.push_back(c);
+        while (get() != end && !eof) s.push_back(cur);
         if (s.back() == '\r' && end == '\n') s.pop_back();
+        return *this;
+    }
+    istream &get(char *s, char end = '\n') {
+        getline(s, end);
+        pre = true;
+        return *this;
+    }
+    istream &get(std::string &s, char end = '\n') {
+        getline(s, end);
+        pre = true;
         return *this;
     }
 };
