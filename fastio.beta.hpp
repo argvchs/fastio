@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <concepts>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
