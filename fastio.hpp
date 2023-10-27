@@ -57,15 +57,15 @@ using u64 = unsigned long long;
 using i128 = __int128;
 using u128 = unsigned __int128;
 template <typename T>
-constexpr bool is_signed_v =
+const bool is_signed_v =
     (std::is_integral_v<T> && std::is_signed_v<T>) || std::is_same_v<T, i128>;
 template <typename T>
-constexpr bool is_unsigned_v =
+const bool is_unsigned_v =
     (std::is_integral_v<T> && std::is_unsigned_v<T>) || std::is_same_v<T, u128>;
 template <typename T>
-constexpr bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
+const bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
 template <typename T>
-constexpr bool is_floating_point_v = std::is_floating_point_v<T>;
+const bool is_floating_point_v = std::is_floating_point_v<T>;
 template <typename T>
 struct make_unsigned {
     using type = std::make_unsigned_t<T>;
@@ -413,7 +413,7 @@ class ostream : public noncopyable {
     }
 };
 }
-constexpr int SIZ = 0x100000;
+const int SIZ = 0x100000;
 class istream : public interface::istream {
   private:
     char buf[SIZ], *p = buf, *q = buf;
