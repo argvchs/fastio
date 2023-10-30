@@ -87,7 +87,7 @@ struct noncopyable {
 class istream : public noncopyable {
   private:
     int base = 10;
-    bool pre = false, eof = false, fail = false;
+    bool flag = false, eof = false, fail = false;
     char cur = '\0';
     static bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
     int todigit(char c) {
@@ -101,9 +101,9 @@ class istream : public noncopyable {
 
   public:
     char get() {
-        if (!pre)
+        if (!flag)
             if ((cur = vget()) == EOF) eof = true;
-        pre = false;
+        flag = false;
         return cur;
     }
     explicit operator bool() { return !fail; }
@@ -115,10 +115,10 @@ class istream : public noncopyable {
         while (isssign(get()) && !eof)
             if (cur == '-' && signed_integral<T>) f = !f;
         if (eof) return fail = true, *this;
-        pre = true;
+        flag = true;
         while (isdigit(get())) n = n * base + todigit(cur);
         if (f) n = -n;
-        pre = true;
+        flag = true;
         return *this;
     }
     template <floating_point T>
@@ -128,14 +128,14 @@ class istream : public noncopyable {
         while (isssign(get()) && !eof)
             if (cur == '-') f = !f;
         if (eof) return fail = true, *this;
-        pre = true;
+        flag = true;
         while (isdigit(get())) n = n * base + todigit(cur);
         if (cur == '.') {
             i64 pow = 1;
             while (isdigit(get())) n += todigit(cur) / (T)(pow *= base);
         }
         if (f) n = -n;
-        pre = true;
+        flag = true;
         return *this;
     }
     istream &operator>>(char &c) {
@@ -158,9 +158,9 @@ class istream : public noncopyable {
         while (isspace(get()) && !eof)
             ;
         if (eof) return fail = true, *this;
-        pre = true;
+        flag = true;
         while (isgraph(get())) s[len++] = cur;
-        pre = true, s[len] = '\0';
+        flag = true, s[len] = '\0';
         return *this;
     }
     istream &operator>>(std::string &s) {
@@ -168,9 +168,9 @@ class istream : public noncopyable {
         while (isspace(get()) && !eof)
             ;
         if (eof) return fail = true, *this;
-        pre = true;
+        flag = true;
         while (isgraph(get())) s.push_back(cur);
-        pre = true;
+        flag = true;
         return *this;
     }
     istream &operator>>(symbols::symbol a) {
@@ -182,7 +182,7 @@ class istream : public noncopyable {
         case symbols::ws:
             while (isspace(get()) && !eof)
                 ;
-            pre = true;
+            flag = true;
             break;
         default: base = 10;
         }
@@ -216,12 +216,12 @@ class istream : public noncopyable {
     }
     istream &get(char *s, char end = '\n') {
         getline(s, end);
-        pre = true;
+        flag = true;
         return *this;
     }
     istream &get(std::string &s, char end = '\n') {
         getline(s, end);
-        pre = true;
+        flag = true;
         return *this;
     }
 };
