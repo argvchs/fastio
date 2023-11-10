@@ -1,0 +1,4 @@
+If:
+    PathMatch: fastio\.beta\.hpp
+CompileFlags:
+    Add: -std=c++20
