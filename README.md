@@ -201,23 +201,23 @@ fastio.in           # 读写测试数据
 
 **注意要用 `fastio::interface::istream` `fastio::interface::ostream` 来重载。**
 
-以下是重载 `std::vector` 的示例程序。
+以下是重载 `std::tuple` 的示例程序。
 
 ```cpp
-template <typename T, typename U>
-auto &operator<<(fastio::interface::istream &is, vector<T, U> &a) {
-    T n, m;
-    is >> n;
-    a.clear();
-    while (n--) {
-        is >> m;
-        a.push_back(m);
-    }
+using namespace fastio;
+template <typename... TS>
+interface::istream &operator>>(interface::istream &is, std::tuple<TS...> &a) {
+    std::apply([&](auto &&...args) { ((is >> args), ...); }, a);
     return is;
 }
-template <typename T, typename U>
-auto &operator<<(fastio::interface::ostream &os, const vector<T> &a) {
-    for (const T &i : a) os << i << ' ';
+template <typename... TS>
+interface::istream &operator>>(interface::istream &is, std::tuple<TS...> &&a) {
+    std::apply([&](auto &&...args) { ((is >> args), ...); }, a);
+    return is;
+}
+template <typename... TS>
+interface::ostream &operator<<(interface::ostream &os, std::tuple<TS...> const &a) {
+    std::apply([&](auto &&...args) { ((os << args << ' '), ...); }, a);
     return os;
 }
 ```
