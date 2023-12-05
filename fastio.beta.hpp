@@ -87,8 +87,8 @@ struct noncopyable {
 class istream : public noncopyable {
   private:
     int base = 10;
-    bool flag = false, eof = false, fail = false;
-    char cur = '\0';
+    bool unget = false, eof = false, fail = false;
+    char chr = '\0';
     static bool isssign(char c) { return isspace(c) || c == '+' || c == '-'; }
     int todigit(char c) {
         if (::isdigit(c)) return c - '0';
@@ -101,10 +101,10 @@ class istream : public noncopyable {
 
   public:
     char get() {
-        if (!flag)
-            if ((cur = vget()) == EOF) eof = true;
-        flag = false;
-        return cur;
+        if (!unget)
+            if ((chr = vget()) == EOF) eof = true;
+        unget = false;
+        return chr;
     }
     explicit operator bool() { return !fail; }
     bool operator!() { return fail; }
@@ -113,12 +113,12 @@ class istream : public noncopyable {
         n = 0;
         bool f = false;
         while (isssign(get()) && !eof)
-            if (cur == '-' && signed_integral<T>) f = !f;
+            if (chr == '-' && signed_integral<T>) f = !f;
         if (eof) return fail = true, *this;
-        flag = true;
-        while (isdigit(get())) n = n * base + todigit(cur);
+        unget = true;
+        while (isdigit(get())) n = n * base + todigit(chr);
         if (f) n = -n;
-        flag = true;
+        unget = true;
         return *this;
     }
     template <floating_point T>
@@ -126,16 +126,16 @@ class istream : public noncopyable {
         n = 0;
         bool f = false;
         while (isssign(get()) && !eof)
-            if (cur == '-') f = !f;
+            if (chr == '-') f = !f;
         if (eof) return fail = true, *this;
-        flag = true;
-        while (isdigit(get())) n = n * base + todigit(cur);
-        if (cur == '.') {
+        unget = true;
+        while (isdigit(get())) n = n * base + todigit(chr);
+        if (chr == '.') {
             i64 pow = 1;
-            while (isdigit(get())) n += todigit(cur) / (T)(pow *= base);
+            while (isdigit(get())) n += todigit(chr) / (T)(pow *= base);
         }
         if (f) n = -n;
-        flag = true;
+        unget = true;
         return *this;
     }
     istream &operator>>(char &c) {
@@ -143,7 +143,7 @@ class istream : public noncopyable {
         while (isspace(get()) && !eof)
             ;
         if (eof) return fail = true, *this;
-        c = cur;
+        c = chr;
         return *this;
     }
     istream &operator>>(bool &f) {
@@ -158,9 +158,9 @@ class istream : public noncopyable {
         while (isspace(get()) && !eof)
             ;
         if (eof) return fail = true, *this;
-        flag = true;
-        while (isgraph(get())) s[len++] = cur;
-        flag = true, s[len] = '\0';
+        unget = true;
+        while (isgraph(get())) s[len++] = chr;
+        unget = true, s[len] = '\0';
         return *this;
     }
     istream &operator>>(std::string &s) {
@@ -168,9 +168,9 @@ class istream : public noncopyable {
         while (isspace(get()) && !eof)
             ;
         if (eof) return fail = true, *this;
-        flag = true;
-        while (isgraph(get())) s.push_back(cur);
-        flag = true;
+        unget = true;
+        while (isgraph(get())) s.push_back(chr);
+        unget = true;
         return *this;
     }
     istream &operator>>(symbols::symbol a) {
@@ -182,7 +182,7 @@ class istream : public noncopyable {
         case symbols::ws:
             while (isspace(get()) && !eof)
                 ;
-            flag = true;
+            unget = true;
             break;
         default: base = 10;
         }
@@ -202,7 +202,7 @@ class istream : public noncopyable {
         s[0] = '\0';
         int len = 0;
         if (eof) return fail = true, *this;
-        while (get() != end && !eof) s[len++] = cur;
+        while (get() != end && !eof) s[len++] = chr;
         if (s[len - 1] == '\r' && end == '\n') --len;
         s[len] = '\0';
         return *this;
@@ -210,18 +210,18 @@ class istream : public noncopyable {
     istream &getline(std::string &s, char end = '\n') {
         s.clear();
         if (eof) return fail = true, *this;
-        while (get() != end && !eof) s.push_back(cur);
+        while (get() != end && !eof) s.push_back(chr);
         if (s.back() == '\r' && end == '\n') s.pop_back();
         return *this;
     }
     istream &get(char *s, char end = '\n') {
         getline(s, end);
-        flag = true;
+        unget = true;
         return *this;
     }
     istream &get(std::string &s, char end = '\n') {
         getline(s, end);
-        flag = true;
+        unget = true;
         return *this;
     }
 };
@@ -232,7 +232,7 @@ class ostream : public noncopyable {
     bool adjust = true, boolalpha = false, showbase = false, showpoint = false,
          showpos = false, kase = false, fixed = false;
     char setfill = ' ';
-    static i64 quickpow(i64 n, int m) {
+    static i64 qpow(i64 n, int m) {
         i64 ret = 1;
         for (int i = m; i; i >>= 1, n *= n)
             if (i & 1) ret *= n;
@@ -365,10 +365,10 @@ class ostream : public noncopyable {
         case symbols::endl: vput('\n'); break;
         case symbols::ends: vput(' '); break;
         case symbols::flush: vflush(); break;
-        case symbols::bin: eps = quickpow(base = 2, precision); break;
-        case symbols::oct: eps = quickpow(base = 8, precision); break;
-        case symbols::dec: eps = quickpow(base = 10, precision); break;
-        case symbols::hex: eps = quickpow(base = 16, precision); break;
+        case symbols::bin: eps = qpow(base = 2, precision); break;
+        case symbols::oct: eps = qpow(base = 8, precision); break;
+        case symbols::dec: eps = qpow(base = 10, precision); break;
+        case symbols::hex: eps = qpow(base = 16, precision); break;
         case symbols::left: adjust = false; break;
         case symbols::right: adjust = true; break;
         case symbols::boolalpha: boolalpha = true; break;
@@ -393,7 +393,7 @@ class ostream : public noncopyable {
     }
     ostream &operator<<(symbols::setbase a) {
         base = std::max(std::min(a.base, 36), 2);
-        eps = quickpow(base, precision);
+        eps = qpow(base, precision);
         return *this;
     }
     ostream &operator<<(symbols::setfill a) {
@@ -402,7 +402,7 @@ class ostream : public noncopyable {
     }
     ostream &operator<<(symbols::setprecision a) {
         precision = std::max(a.precision, 0);
-        eps = quickpow(base, precision);
+        eps = qpow(base, precision);
         return *this;
     }
     ostream &operator<<(symbols::setw a) {
