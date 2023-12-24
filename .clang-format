@@ -1,7 +1,7 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: -2
 AlwaysBreakTemplateDeclarations: true
-AllowShortBlocksOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
@@ -10,6 +10,7 @@ AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
 ColumnLimit: 90
 FixNamespaceComments: false
+IndentRequiresClause: false
 IndentWidth: 4
 PenaltyExcessCharacter: 10
 PenaltyIndentedWhitespace: 10
