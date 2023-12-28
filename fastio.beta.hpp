@@ -60,24 +60,12 @@ template <typename T>
 concept signed_integral = std::signed_integral<T> || std::same_as<T, i128>;
 template <typename T>
 concept unsigned_integral = std::unsigned_integral<T> || std::same_as<T, u128>;
-template <typename T>
-concept integral = signed_integral<T> || unsigned_integral<T>;
-template <typename T>
-concept floating_point = std::floating_point<T>;
-template <typename T>
-struct make_unsigned {
-    using type = std::make_unsigned_t<T>;
-};
-template <>
-struct make_unsigned<i128> {
-    using type = u128;
-};
-template <>
-struct make_unsigned<u128> {
-    using type = u128;
-};
-template <typename T>
-using make_unsigned_t = typename make_unsigned<T>::type;
+template <typename T> concept integral = signed_integral<T> || unsigned_integral<T>;
+template <typename T> concept floating = std::floating_point<T>;
+template <typename T> struct make_unsigned : public std::make_unsigned<T> {};
+template <> struct make_unsigned<i128> : public std::type_identity<u128> {};
+template <> struct make_unsigned<u128> : public std::type_identity<u128> {};
+template <typename T> using make_unsigned_t = typename make_unsigned<T>::type;
 struct noncopyable {
     noncopyable() = default;
     virtual ~noncopyable() = default;
@@ -108,8 +96,8 @@ class istream : public noncopyable {
     }
     explicit operator bool() { return !fail; }
     bool operator!() { return fail; }
-    template <integral T>
-    istream &operator>>(T &n) {
+    istream &operator>>(integral auto &n) {
+        using T = std::remove_reference_t<decltype(n)>;
         n = 0;
         bool f = false;
         while (isssign(get()) && !eof)
@@ -121,8 +109,8 @@ class istream : public noncopyable {
         unget = true;
         return *this;
     }
-    template <floating_point T>
-    istream &operator>>(T &n) {
+    istream &operator>>(floating auto &n) {
+        using T = std::remove_reference_t<decltype(n)>;
         n = 0;
         bool f = false;
         while (isssign(get()) && !eof)
@@ -253,8 +241,8 @@ class ostream : public noncopyable {
 
   public:
     void put(char c) { vput(c); }
-    template <integral T>
-    ostream &operator<<(T n) {
+    ostream &operator<<(integral auto n) {
+        using T = std::remove_reference_t<decltype(n)>;
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
         bool f = n < 0;
@@ -275,8 +263,7 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <floating_point T>
-    ostream &operator<<(T n) {
+    ostream &operator<<(floating auto n) {
         static char buf1[105], buf2[105];
         if (std::isinf(n)) {
             if (n > 0) {

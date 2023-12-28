@@ -57,29 +57,17 @@ using u64 = unsigned long long;
 using i128 = __int128;
 using u128 = unsigned __int128;
 template <typename T>
-const bool is_signed_v =
+constexpr bool is_signed_v =
     (std::is_integral_v<T> && std::is_signed_v<T>) || std::is_same_v<T, i128>;
 template <typename T>
-const bool is_unsigned_v =
+constexpr bool is_unsigned_v =
     (std::is_integral_v<T> && std::is_unsigned_v<T>) || std::is_same_v<T, u128>;
-template <typename T>
-const bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
-template <typename T>
-const bool is_floating_point_v = std::is_floating_point_v<T>;
-template <typename T>
-struct make_unsigned {
-    using type = std::make_unsigned_t<T>;
-};
-template <>
-struct make_unsigned<i128> {
-    using type = u128;
-};
-template <>
-struct make_unsigned<u128> {
-    using type = u128;
-};
-template <typename T>
-using make_unsigned_t = typename make_unsigned<T>::type;
+template <typename T> constexpr bool is_integral_v = is_signed_v<T> || is_unsigned_v<T>;
+template <typename T> constexpr bool is_floating_v = std::is_floating_point_v<T>;
+template <typename T> struct make_unsigned : public std::make_unsigned<T> {};
+template <> struct make_unsigned<i128> : public std::type_identity<u128> {};
+template <> struct make_unsigned<u128> : public std::type_identity<u128> {};
+template <typename T> using make_unsigned_t = typename make_unsigned<T>::type;
 struct noncopyable {
     noncopyable() = default;
     virtual ~noncopyable() = default;
@@ -123,7 +111,7 @@ class istream : public noncopyable {
         unget = true;
         return *this;
     }
-    template <typename T, std::enable_if_t<is_floating_point_v<T>, int> = 0>
+    template <typename T, std::enable_if_t<is_floating_v<T>, int> = 0>
     istream &operator>>(T &n) {
         n = 0;
         bool f = false;
@@ -277,7 +265,7 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <typename T, std::enable_if_t<is_floating_point_v<T>, int> = 0>
+    template <typename T, std::enable_if_t<is_floating_v<T>, int> = 0>
     ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         if (std::isinf(n)) {
