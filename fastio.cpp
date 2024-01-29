@@ -35,5 +35,4 @@ int main() {
     ofs << setw(20) << left << "left" << endl;
     ofs << setw(20) << right << "right" << endl;
     while (ifs >> n) ofs << n << endl;
-    return 0;
 }
