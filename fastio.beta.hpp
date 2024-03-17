@@ -50,7 +50,7 @@ struct setw {
     int width;
     setw(int n) : width(n) {}
 };
-}
+} // namespace symbols
 namespace interface {
 using i64 = long long;
 using u64 = unsigned long long;
@@ -93,6 +93,10 @@ class istream : public noncopyable {
             if ((chr = vget()) == EOF) eof = true;
         unget = false;
         return chr;
+    }
+    istream &get(char &c) {
+        c = get();
+        return *this;
     }
     explicit operator bool() { return !fail; }
     bool operator!() { return fail; }
@@ -397,7 +401,7 @@ class ostream : public noncopyable {
         return *this;
     }
 };
-}
+} // namespace interface
 const int SIZ = 0xfffff;
 class istream : public interface::istream {
   private:
@@ -473,4 +477,4 @@ class ofstream : public ostream {
 };
 static istream is;
 static ostream os;
-};
+}; // namespace fastio

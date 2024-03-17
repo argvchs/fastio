@@ -31,7 +31,7 @@ fastio.in           # 读写测试数据
 
     读取 `n` `m` `k`。
 
--   `c = is.get();`
+-   `c = is.get();` `is.get(c);`
 
     读取一个字符到 `c`。
 

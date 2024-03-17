@@ -9,10 +9,7 @@ AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
 BreakBeforeConceptDeclarations: Allowed
 ColumnLimit: 90
-FixNamespaceComments: false
 IndentRequiresClause: false
 IndentWidth: 4
-PenaltyExcessCharacter: 10
-PenaltyIndentedWhitespace: 10
 TabWidth: 4
 UseTab: Never
