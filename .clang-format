@@ -1,5 +1,4 @@
 BasedOnStyle: LLVM
-AccessModifierOffset: -2
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
@@ -11,5 +10,3 @@ BreakBeforeConceptDeclarations: Allowed
 ColumnLimit: 90
 IndentRequiresClause: false
 IndentWidth: 4
-TabWidth: 4
-UseTab: Never
