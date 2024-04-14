@@ -6,7 +6,7 @@
 
 # 1. 目录解释
 
-```plaintext
+```text
 fastio.cpp          # 测试代码
 fastio.hpp          # FastIO 库源代码
 fastio.beta.hpp     # FastIO 库源代码，使用 C++20
