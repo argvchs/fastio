@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -132,8 +133,7 @@ class istream : public noncopyable {
     }
     istream &operator>>(char &c) {
         c = '\0';
-        while (isspace(get()) && !eof)
-            ;
+        while (isspace(get()) && !eof);
         if (eof) return fail = true, *this;
         c = chr;
         return *this;
@@ -147,8 +147,7 @@ class istream : public noncopyable {
     istream &operator>>(char *s) {
         s[0] = '\0';
         int len = 0;
-        while (isspace(get()) && !eof)
-            ;
+        while (isspace(get()) && !eof);
         if (eof) return fail = true, *this;
         unget = true;
         while (isgraph(get())) s[len++] = chr;
@@ -157,8 +156,7 @@ class istream : public noncopyable {
     }
     istream &operator>>(std::string &s) {
         s.clear();
-        while (isspace(get()) && !eof)
-            ;
+        while (isspace(get()) && !eof);
         if (eof) return fail = true, *this;
         unget = true;
         while (isgraph(get())) s.push_back(chr);
@@ -172,8 +170,7 @@ class istream : public noncopyable {
         case symbols::dec: base = 10; break;
         case symbols::hex: base = 16; break;
         case symbols::ws:
-            while (isspace(get()) && !eof)
-                ;
+            while (isspace(get()) && !eof);
             unget = true;
             break;
         default: base = 10;
@@ -185,8 +182,7 @@ class istream : public noncopyable {
         return *this;
     }
     istream &ignore(char end = '\n') {
-        while (get() != end && !eof)
-            ;
+        while (get() != end && !eof);
         if (eof) return fail = true, *this;
         return *this;
     }
