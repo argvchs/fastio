@@ -102,8 +102,7 @@ class istream : public noncopyable {
     }
     explicit operator bool() { return !fail; }
     bool operator!() { return fail; }
-    template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0>
-    istream &operator>>(T &n) {
+    template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0> istream &operator>>(T &n) {
         n = 0;
         bool f = false;
         while (isssign(get()) && !eof)
@@ -115,8 +114,7 @@ class istream : public noncopyable {
         unget = true;
         return *this;
     }
-    template <typename T, std::enable_if_t<is_floating_v<T>, int> = 0>
-    istream &operator>>(T &n) {
+    template <typename T, std::enable_if_t<is_floating_v<T>, int> = 0> istream &operator>>(T &n) {
         n = 0;
         bool f = false;
         while (isssign(get()) && !eof)
@@ -218,8 +216,8 @@ class ostream : public noncopyable {
   private:
     int base = 10, precision = 6, width = 0;
     i64 eps = 1e6;
-    bool adjust = true, boolalpha = false, showbase = false, showpoint = false,
-         showpos = false, kase = false, fixed = false;
+    bool adjust = true, boolalpha = false, showbase = false, showpoint = false, showpos = false,
+         kase = false, fixed = false;
     char setfill = ' ';
     static i64 qpow(i64 n, int m) {
         i64 ret = 1;
@@ -242,8 +240,7 @@ class ostream : public noncopyable {
 
   public:
     void put(char c) { vput(c); }
-    template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0>
-    ostream &operator<<(T n) {
+    template <typename T, std::enable_if_t<is_integral_v<T>, int> = 0> ostream &operator<<(T n) {
         static char buf[105];
         char *p = buf + 100, *q = buf + 100;
         bool f = n < 0;
@@ -264,8 +261,7 @@ class ostream : public noncopyable {
         if (!adjust) fill(q - p);
         return *this;
     }
-    template <typename T, std::enable_if_t<is_floating_v<T>, int> = 0>
-    ostream &operator<<(T n) {
+    template <typename T, std::enable_if_t<is_floating_v<T>, int> = 0> ostream &operator<<(T n) {
         static char buf1[105], buf2[105];
         if (std::isinf(n)) {
             if (n > 0) {
@@ -346,9 +342,7 @@ class ostream : public noncopyable {
         base = n, showbase = f;
         return *this;
     }
-    ostream &operator<<(std::nullptr_t) {
-        return *this << (kase ? "NULLPTR" : "nullptr");
-    }
+    ostream &operator<<(std::nullptr_t) { return *this << (kase ? "NULLPTR" : "nullptr"); }
     ostream &operator<<(symbols::symbol a) {
         switch (a) {
         case symbols::endl: vput('\n'); break;

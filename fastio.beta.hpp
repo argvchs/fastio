@@ -57,8 +57,7 @@ using i64 = long long;
 using u64 = unsigned long long;
 using i128 = __int128;
 using u128 = unsigned __int128;
-template <typename T>
-concept signed_integral = std::signed_integral<T> || std::same_as<T, i128>;
+template <typename T> concept signed_integral = std::signed_integral<T> || std::same_as<T, i128>;
 template <typename T>
 concept unsigned_integral = std::unsigned_integral<T> || std::same_as<T, u128>;
 template <typename T> concept integral = signed_integral<T> || unsigned_integral<T>;
@@ -217,8 +216,8 @@ class ostream : public noncopyable {
   private:
     int base = 10, precision = 6, width = 0;
     i64 eps = 1e6;
-    bool adjust = true, boolalpha = false, showbase = false, showpoint = false,
-         showpos = false, kase = false, fixed = false;
+    bool adjust = true, boolalpha = false, showbase = false, showpoint = false, showpos = false,
+         kase = false, fixed = false;
     char setfill = ' ';
     static i64 qpow(i64 n, int m) {
         i64 ret = 1;
@@ -344,9 +343,7 @@ class ostream : public noncopyable {
         base = n, showbase = f;
         return *this;
     }
-    ostream &operator<<(std::nullptr_t) {
-        return *this << (kase ? "NULLPTR" : "nullptr");
-    }
+    ostream &operator<<(std::nullptr_t) { return *this << (kase ? "NULLPTR" : "nullptr"); }
     ostream &operator<<(symbols::symbol a) {
         switch (a) {
         case symbols::endl: vput('\n'); break;

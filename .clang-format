@@ -7,6 +7,6 @@ AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
 BreakBeforeConceptDeclarations: Allowed
-ColumnLimit: 90
-IndentRequiresClause: false
+ColumnLimit: 100
 IndentWidth: 4
+RequiresClausePosition: SingleLine
