@@ -1,4 +1,4 @@
-#include "fastio.hpp"
+#include "fastio.h"
 #include <limits>
 #include <string>
 using namespace fastio;

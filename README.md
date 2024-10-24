@@ -8,8 +8,8 @@
 
 ```text
 fastio.cpp          # 测试代码
-fastio.hpp          # FastIO 库源代码
-fastio.beta.hpp     # FastIO 库源代码，使用 C++20
+fastio.h            # FastIO 库源代码
+fastio.beta.h       # FastIO 库源代码，使用 C++20
 fastio.in           # 读写测试数据
 ```
 
