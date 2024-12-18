@@ -1,12 +1,11 @@
 BasedOnStyle: LLVM
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
-BreakBeforeConceptDeclarations: Allowed
 ColumnLimit: 100
 IndentWidth: 4
-RequiresClausePosition: SingleLine

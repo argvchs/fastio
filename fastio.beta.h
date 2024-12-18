@@ -57,11 +57,14 @@ using i64 = long long;
 using u64 = unsigned long long;
 using i128 = __int128;
 using u128 = unsigned __int128;
-template <typename T> concept signed_integral = std::signed_integral<T> || std::same_as<T, i128>;
+template <typename T>
+concept signed_integral = std::signed_integral<T> || std::same_as<T, i128>;
 template <typename T>
 concept unsigned_integral = std::unsigned_integral<T> || std::same_as<T, u128>;
-template <typename T> concept integral = signed_integral<T> || unsigned_integral<T>;
-template <typename T> concept floating = std::floating_point<T>;
+template <typename T>
+concept integral = signed_integral<T> || unsigned_integral<T>;
+template <typename T>
+concept floating = std::floating_point<T>;
 template <typename T> struct make_unsigned : public std::make_unsigned<T> {};
 template <> struct make_unsigned<i128> : public std::type_identity<u128> {};
 template <> struct make_unsigned<u128> : public std::type_identity<u128> {};
